@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Http," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="网络基础tcp/ip协议族ip协议tcp协议dns服务uri与url 简单http协议http不保存状态持久链接节省流量：1.长连接（keep-alive）; 2.管线话（pipeline）使用cookie的状态管理 http报文内的http信息请求报文与响应报文结构 编码提升传输速率：1.压缩；2.分块Content-Type：Range:获取内容范围内容协商返回最合适的内容 返回结果状态码2x">
+<meta name="keywords" content="Http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Http 网络协议">
+<meta property="og:url" content="http://yoursite.com/2017/01/17/Http网络协议/index.html">
+<meta property="og:site_name" content="Mochangxing">
+<meta property="og:description" content="网络基础tcp/ip协议族ip协议tcp协议dns服务uri与url 简单http协议http不保存状态持久链接节省流量：1.长连接（keep-alive）; 2.管线话（pipeline）使用cookie的状态管理 http报文内的http信息请求报文与响应报文结构 编码提升传输速率：1.压缩；2.分块Content-Type：Range:获取内容范围内容协商返回最合适的内容 返回结果状态码2x">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15189246342719.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15189386234933.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15189593763237.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15190975324819.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15191113047950.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15191121986953.jpg">
+<meta property="og:updated_time" content="2018-04-14T06:42:22.169Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Http 网络协议">
+<meta name="twitter:description" content="网络基础tcp/ip协议族ip协议tcp协议dns服务uri与url 简单http协议http不保存状态持久链接节省流量：1.长连接（keep-alive）; 2.管线话（pipeline）使用cookie的状态管理 http报文内的http信息请求报文与响应报文结构 编码提升传输速率：1.压缩；2.分块Content-Type：Range:获取内容范围内容协商返回最合适的内容 返回结果状态码2x">
+<meta name="twitter:image" content="http://yoursite.com/2017/01/17/Http网络协议/media/15177516634047/15189246342719.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/01/17/Http网络协议/"/>
+
+
+
+
+
+  <title>Http 网络协议 | Mochangxing</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mochangxing</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/17/Http网络协议/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Http 网络协议</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-17T13:32:01+08:00">
+                2017-01-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="网络基础"><a href="#网络基础" class="headerlink" title="网络基础"></a>网络基础</h3><p>tcp/ip协议族<br>ip协议<br>tcp协议<br>dns服务<br>uri与url</p>
+<h3 id="简单http协议"><a href="#简单http协议" class="headerlink" title="简单http协议"></a>简单http协议</h3><p>http不保存状态<br>持久链接节省流量：1.长连接（keep-alive）; 2.管线话（pipeline）<br>使用cookie的状态管理</p>
+<h3 id="http报文内的http信息"><a href="#http报文内的http信息" class="headerlink" title="http报文内的http信息"></a>http报文内的http信息</h3><p>请求报文与响应报文结构<br><img src="media/15177516634047/15189246342719.jpg" alt=""></p>
+<p>编码提升传输速率：<br>1.压缩；<br>2.分块<br>Content-Type：<br>Range:获取内容范围<br>内容协商返回最合适的内容</p>
+<h3 id="返回结果状态码"><a href="#返回结果状态码" class="headerlink" title="返回结果状态码"></a>返回结果状态码</h3><p>2xx成功<br>3xx重定向<br>4xx客户端失败<br>5xx服务端失败</p>
+<h3 id="与http协作的web服务器"><a href="#与http协作的web服务器" class="headerlink" title="与http协作的web服务器"></a>与http协作的web服务器</h3><p>通信数据转发程序：代理、网关、隧道<br>代理：<br><img src="media/15177516634047/15189386234933.jpg" alt=""></p>
+<p>使用代理服务器的理由：<br>1.利用缓存减少网络流量<br>2.访问控制</p>
+<p>代理的分类：缓存代理、透明代理</p>
+<p>网关：网关与代理很像，而网关能使通信线路上的服务器提供非http协议服务</p>
+<h3 id="http首部"><a href="#http首部" class="headerlink" title="http首部"></a>http首部</h3><p>首部字段格式：</p>
+<blockquote>
+<p>首部字段名称：字段值<br>4种首部字段类型：</p>
+<ol>
+<li>通用首部字段（General Header Fields）</li>
+<li>请求首部字段</li>
+<li>响应首部字段</li>
+<li>实体首部字段</li>
+</ol>
+</blockquote>
+<p>Cookie:Cookie的工作机制是<strong>用户识别</strong>与<strong>状态管理</strong>。<br>用户识别本身也算一种状态管理。</p>
+<h3 id="确保web安全的https"><a href="#确保web安全的https" class="headerlink" title="确保web安全的https"></a>确保web安全的https</h3><p>http协议中有可能存在信息窃听与身份伪装等安全问题，使用https可以有效地防止这些问题。<br>http的缺点：</p>
+<ul>
+<li>使用明文通信，信息有可能被窃听</li>
+<li>不验证通信方，有可能遭遇身份伪装</li>
+<li>无法验证报文的完整性，有可能信息被篡改</li>
+</ul>
+<p><strong>http + 加密 + 认证 + 完整性保护 = https
+</strong></p>
+<p><img src="media/15177516634047/15189593763237.jpg" alt=""></p>
+<h4 id="加密方式："><a href="#加密方式：" class="headerlink" title="加密方式："></a>加密方式：</h4><ol>
+<li>对称密钥加密：只有一个密钥，加解密都使用同一个密钥</li>
+<li>非对称密钥加密，包含公钥与私钥，公钥是公开的，任何都可以获取，用于加密，私钥用于解密</li>
+</ol>
+<p>https采用混合加密机制：</p>
+<ol>
+<li>使用非对称加密方式交换稍后在对称密钥加密要使用的私有密钥</li>
+<li>在确保交换的私钥安全的前提下，使用对称密钥加密方式加密</li>
+</ol>
+<h4 id="证明公开密钥正确性的证书"><a href="#证明公开密钥正确性的证书" class="headerlink" title="证明公开密钥正确性的证书"></a>证明公开密钥正确性的证书</h4><p><em><strong>但是非对称密钥加密还是存在一些问题：无法证明公钥是货真价实的公钥</strong></em></p>
+<p>为了解决上述问题，可以使用数字证书认证机构（CA，Certificate Authority）和其相关的机构颁发的公开密钥证书 </p>
+<h4 id="https的安全通信机制"><a href="#https的安全通信机制" class="headerlink" title="https的安全通信机制"></a>https的安全通信机制</h4><ol>
+<li>客户端发送Client hello 报文开始SSL通信，报文中包含支持的SSL版本、加密组件列表（所使用的加密算法级以及密钥长度）</li>
+<li>服务端可以进行SSL通信时，会以Server Hello报文作为应答，报文中包含SSL版本、加密组件，加密组件是从接收到的客户端加密组件列表中筛选出来的。</li>
+<li>之后服务端发送Certificate报文，包含公开密钥的证书</li>
+<li>最后服务器发送Server Hello Done 报文通知客户端，最初阶段的SSL握手协商部分结束</li>
+<li>SSL握手结束后，客户端以 Client Key Exchange 报文作为回应，该报文包含通信加密中被称为Pre-master secret 的随机密码串。该报文已使用步骤3中的公钥进行加密</li>
+<li>接着客户端会继续发送 Change Cipher Spec 报文，提示服务端后续的通信将使用 Pre-master secret 密钥加密</li>
+<li>客户端发送Finished。该报文包含链接至今全部报文的整体校验值。此次握手是否成功，以服务端是否能正确解密该报文为准。</li>
+<li>服务端发送 Change Cipher Spec 报文</li>
+<li>服务端发送 Finished 报文</li>
+<li>服务端与客户端的Finished报文交换完毕后，SSL链接就算是建立完成。此处开始进行应用层通协议信，即发送Http响应</li>
+<li>应用层协议通信</li>
+<li>最后由客户端断开SSL链接。断开连接时，客户端发送close_notify报文。</li>
+</ol>
+<p>SSL速度慢：1、网络通信慢；2、大量消耗CPU及内存，导致处理速度慢</p>
+<h3 id="确认访问用户身份的认证"><a href="#确认访问用户身份的认证" class="headerlink" title="确认访问用户身份的认证"></a>确认访问用户身份的认证</h3><h4 id="SSL客户端的认证步骤"><a href="#SSL客户端的认证步骤" class="headerlink" title="SSL客户端的认证步骤"></a>SSL客户端的认证步骤</h4><ol>
+<li>服务器收到需要认证的资源请求，就会发送Certificate Request 报文，要求客户端提供客户端证书</li>
+<li>客户端把客户端证书信息以Client Certificate报文的形式发送给服务端</li>
+<li>服务端验证通过后，领取证书内的公开密钥，然后开始HTTPS通信</li>
+</ol>
+<h4 id="SSL客户端认证采用双因素认证"><a href="#SSL客户端认证采用双因素认证" class="headerlink" title="SSL客户端认证采用双因素认证"></a>SSL客户端认证采用双因素认证</h4><p>第一个认证因素的客户端证书，用来认证客户端计算机，另一个认证因素的密码则用来认证来自用户本人</p>
+<h4 id="基于表单认证"><a href="#基于表单认证" class="headerlink" title="基于表单认证"></a>基于表单认证</h4><p>Session管理以及Cookie的应用<br>由于Http是无状态协议，已认证通过的用户状态无法在协议层面保存。即无法实现状态管理，于是可以使用Cookie来管理Session</p>
+<p><img src="media/15177516634047/15190975324819.jpg" alt=""></p>
+<h3 id="基于HTTP功能追加的协议"><a href="#基于HTTP功能追加的协议" class="headerlink" title="基于HTTP功能追加的协议"></a>基于HTTP功能追加的协议</h3><h4 id="消除瓶颈的SPDY协议"><a href="#消除瓶颈的SPDY协议" class="headerlink" title="消除瓶颈的SPDY协议"></a>消除瓶颈的SPDY协议</h4><p><img src="media/15177516634047/15191113047950.jpg" alt=""></p>
+<p>SPDY功能：</p>
+<ol>
+<li>多路复用</li>
+<li>赋予请求优先级</li>
+<li>压缩HTTP首部</li>
+<li>推送功能</li>
+<li>服务器提示功能</li>
+</ol>
+<h4 id="全双工通信的WebSocket"><a href="#全双工通信的WebSocket" class="headerlink" title="全双工通信的WebSocket"></a>全双工通信的WebSocket</h4><p>WebSocket的主要特点：</p>
+<ol>
+<li>推送功能</li>
+<li>减少通信量</li>
+</ol>
+<p>WebSocket握手过程<br><img src="media/15177516634047/15191121986953.jpg" alt=""></p>
+<h4 id="HTTP-2-0"><a href="#HTTP-2-0" class="headerlink" title="HTTP/2.0"></a>HTTP/2.0</h4><p>改善用户使用Web是的速度体验</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Http/" rel="tag"># Http</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/08/iOS运行时Runtime/" rel="prev" title="iOS运行时Runtime">
+                iOS运行时Runtime <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#网络基础"><span class="nav-number">1.</span> <span class="nav-text">网络基础</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单http协议"><span class="nav-number">2.</span> <span class="nav-text">简单http协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#http报文内的http信息"><span class="nav-number">3.</span> <span class="nav-text">http报文内的http信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回结果状态码"><span class="nav-number">4.</span> <span class="nav-text">返回结果状态码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#与http协作的web服务器"><span class="nav-number">5.</span> <span class="nav-text">与http协作的web服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#http首部"><span class="nav-number">6.</span> <span class="nav-text">http首部</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#确保web安全的https"><span class="nav-number">7.</span> <span class="nav-text">确保web安全的https</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加密方式："><span class="nav-number">7.1.</span> <span class="nav-text">加密方式：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#证明公开密钥正确性的证书"><span class="nav-number">7.2.</span> <span class="nav-text">证明公开密钥正确性的证书</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#https的安全通信机制"><span class="nav-number">7.3.</span> <span class="nav-text">https的安全通信机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#确认访问用户身份的认证"><span class="nav-number">8.</span> <span class="nav-text">确认访问用户身份的认证</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SSL客户端的认证步骤"><span class="nav-number">8.1.</span> <span class="nav-text">SSL客户端的认证步骤</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SSL客户端认证采用双因素认证"><span class="nav-number">8.2.</span> <span class="nav-text">SSL客户端认证采用双因素认证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于表单认证"><span class="nav-number">8.3.</span> <span class="nav-text">基于表单认证</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于HTTP功能追加的协议"><span class="nav-number">9.</span> <span class="nav-text">基于HTTP功能追加的协议</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#消除瓶颈的SPDY协议"><span class="nav-number">9.1.</span> <span class="nav-text">消除瓶颈的SPDY协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#全双工通信的WebSocket"><span class="nav-number">9.2.</span> <span class="nav-text">全双工通信的WebSocket</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#HTTP-2-0"><span class="nav-number">9.3.</span> <span class="nav-text">HTTP/2.0</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

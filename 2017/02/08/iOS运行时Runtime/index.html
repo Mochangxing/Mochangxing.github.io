@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="iOS," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="基础概念SELSEL是方法选择器，即方法的ID。结构体如下，源码中没有objc_selector具体的定义。但其实就是映射到方法的C字符串。不同类的同名方法具有相同的选择器，方法名相同单变量类型不同也会导致它们具有相同的选择器 123// An opaque type that represents a method selector.typedef struct objc_selector *S">
+<meta name="keywords" content="iOS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS运行时Runtime">
+<meta property="og:url" content="http://yoursite.com/2017/02/08/iOS运行时Runtime/index.html">
+<meta property="og:site_name" content="Mochangxing">
+<meta property="og:description" content="基础概念SELSEL是方法选择器，即方法的ID。结构体如下，源码中没有objc_selector具体的定义。但其实就是映射到方法的C字符串。不同类的同名方法具有相同的选择器，方法名相同单变量类型不同也会导致它们具有相同的选择器 123// An opaque type that represents a method selector.typedef struct objc_selector *S">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://yoursite.com/2017/02/08/iOS运行时Runtime/media/15177558941335/15188318533816.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/02/08/iOS运行时Runtime/media/15177558941335/15188578544407.jpg">
+<meta property="og:updated_time" content="2018-04-14T06:43:44.258Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS运行时Runtime">
+<meta name="twitter:description" content="基础概念SELSEL是方法选择器，即方法的ID。结构体如下，源码中没有objc_selector具体的定义。但其实就是映射到方法的C字符串。不同类的同名方法具有相同的选择器，方法名相同单变量类型不同也会导致它们具有相同的选择器 123// An opaque type that represents a method selector.typedef struct objc_selector *S">
+<meta name="twitter:image" content="http://yoursite.com/2017/02/08/iOS运行时Runtime/media/15177558941335/15188318533816.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/02/08/iOS运行时Runtime/"/>
+
+
+
+
+
+  <title>iOS运行时Runtime | Mochangxing</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mochangxing</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/08/iOS运行时Runtime/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS运行时Runtime</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-02-08T13:32:01+08:00">
+                2017-02-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h2><h3 id="SEL"><a href="#SEL" class="headerlink" title="SEL"></a>SEL</h3><p>SEL是方法选择器，即方法的ID。结构体如下，源码中没有objc_selector具体的定义。<br>但其实就是映射到方法的C字符串。不同类的同名方法具有相同的选择器，方法名相同单变量类型不同也会导致它们具有相同的选择器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// An opaque type that represents a method selector.</span><br><span class="line"></span><br><span class="line">typedef struct objc_selector *SEL;</span><br></pre></td></tr></table></figure>
+<h3 id="id"><a href="#id" class="headerlink" title="id"></a>id</h3><p><code>id</code>的结构体定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">typedef struct objc_object *id;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">struct objc_object &#123;</span><br><span class="line">    private:</span><br><span class="line">        isa_t isa;</span><br><span class="line">    </span><br><span class="line">    public:</span><br><span class="line">    </span><br><span class="line">        // ISA() assumes this is NOT a tagged pointer object</span><br><span class="line">        Class ISA();</span><br><span class="line">    </span><br><span class="line">        // getIsa() allows this to be a tagged pointer object</span><br><span class="line">        Class getIsa();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><code>objc_object</code>结构体包含一个<code>isa_t</code>指针，<code>isa_t</code>是一个联合体，根据<code>isa</code>指针可以找到对象所属的类，<code>isa</code>还涉及到 tagged pointer 的相关知识点。</p>
+<h3 id="Class"><a href="#Class" class="headerlink" title="Class"></a>Class</h3><p><code>Class</code> 是一个指向 <code>objc_class</code>结构体的指针<br><code>objc_class</code>继承自 <code>objc_object</code>结构体，<code>objc_class</code>的很多方法都基于它的几个成员实现的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">typedef struct objc_class *Class;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">struct objc_class : objc_object &#123;</span><br><span class="line">    // Class ISA;</span><br><span class="line">    Class superclass;</span><br><span class="line">    cache_t cache;             // formerly cache pointer and vtable</span><br><span class="line">    class_data_bits_t bits;    // class_rw_t * plus custom rr/alloc flags</span><br><span class="line"></span><br><span class="line">    class_rw_t *data() &#123; </span><br><span class="line">        return bits.data();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>为了处理类与对象的关系，Runtime创造了元类（Meta Class，类对象所属的类型就是元类，它用来表示类本身所具备的元数据。每个类只有一个类对象，每个类对象只对应一个元类</p>
+<p>实例对象的<code>isa</code>指针指向类对象的，类对象的<code>isa</code>指针指向元类<br><strong>根元类的<code>isa</code>指针指向的是自己，而超类指向的<code>NSObject</code>，<code>NSObject</code>的超类的为<code>nil</code>，也就是<code>NSObject</code>没有超类</strong><br><img src="media/15177558941335/15188318533816.jpg" alt=""></p>
+<h3 id="cache-t"><a href="#cache-t" class="headerlink" title="cache_t"></a>cache_t</h3><p><code>cache_t</code> 定义如下，方法缓存列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct cache_t &#123;</span><br><span class="line">    struct bucket_t *_buckets;</span><br><span class="line">    mask_t _mask;</span><br><span class="line">    mask_t _occupied;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>buckets</code>是一个hask表，存储了调用过的方法体IMP。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">struct bucket_t &#123;</span><br><span class="line">private:</span><br><span class="line">    cache_key_t _key;</span><br><span class="line">    IMP _imp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>cache</code>为方法调用进行了性能优化，每次方法调用了先从<code>cache</code>中查找，命中就返回方法体IMP，否则再从<code>isa</code>指向的方法列表遍历查找能够响应消息的方法</p>
+<h3 id="class-data-bits-t"><a href="#class-data-bits-t" class="headerlink" title="class_data_bits_t"></a>class_data_bits_t</h3><p><code>class_data_bits_t</code>结构体定义如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">struct class_data_bits_t &#123;</span><br><span class="line"></span><br><span class="line">    // Values are the FAST_ flags above. </span><br><span class="line">    uintptr_t bits;</span><br><span class="line">    </span><br><span class="line">private:</span><br><span class="line">    bool getBit(uintptr_t bit)</span><br><span class="line">    &#123;</span><br><span class="line">        return bits &amp; bit;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    void setBits(uintptr_t set) </span><br><span class="line">    &#123;</span><br><span class="line">        uintptr_t oldBits;</span><br><span class="line">        uintptr_t newBits;</span><br><span class="line">        do &#123;</span><br><span class="line">            oldBits = LoadExclusive(&amp;bits);</span><br><span class="line">            newBits = updateFastAlloc(oldBits | set, set);</span><br><span class="line">        &#125; while (!StoreReleaseExclusive(&amp;bits, oldBits, newBits));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    void clearBits(uintptr_t clear) </span><br><span class="line">    &#123;</span><br><span class="line">        uintptr_t oldBits;</span><br><span class="line">        uintptr_t newBits;</span><br><span class="line">        do &#123;</span><br><span class="line">            oldBits = LoadExclusive(&amp;bits);</span><br><span class="line">            newBits = updateFastAlloc(oldBits &amp; ~clear, clear);</span><br><span class="line">        &#125; while (!StoreReleaseExclusive(&amp;bits, oldBits, newBits));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">public:</span><br><span class="line"></span><br><span class="line">    class_rw_t* data() &#123;</span><br><span class="line">        return (class_rw_t *)(bits &amp; FAST_DATA_MASK);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><code>class_data_bits_t</code> 包含了一个 <code>bits</code>，这个指针跟不同的FAST_前缀的flag掩码做按位与操作，获取不同的数据</p>
+<p>FAST_前缀的flag掩码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// class is a Swift class</span><br><span class="line">#define FAST_IS_SWIFT           (1UL&lt;&lt;0)</span><br><span class="line">// class or superclass has default retain/release/autorelease/retainCount/</span><br><span class="line">//   _tryRetain/_isDeallocating/retainWeakReference/allowsWeakReference</span><br><span class="line">#define FAST_HAS_DEFAULT_RR     (1UL&lt;&lt;1)</span><br><span class="line">// class&apos;s instances requires raw isa</span><br><span class="line">#define FAST_REQUIRES_RAW_ISA   (1UL&lt;&lt;2)</span><br><span class="line">// data pointer</span><br><span class="line">#define FAST_DATA_MASK          0x00007ffffffffff8UL</span><br></pre></td></tr></table></figure>
+<p><code>bits</code>中其他的Fast_都是存储了相关标志位bool值，<strong>FAST_DATA_MASK</strong> 则存储了指向<code>class_rw_t</code>的指针</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">class_rw_t* data() &#123;</span><br><span class="line">     return (class_rw_t *)(bits &amp; FAST_DATA_MASK);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="class-ro-t"><a href="#class-ro-t" class="headerlink" title="class_ro_t"></a>class_ro_t</h3><p><code>objc_class</code> 包含了 <code>class_data_bits_t</code>， <code>class_data_bits_t</code>存储了 <code>class_rw_t</code>指针， <code>class_rw_t</code>有包含了了 <code>class_ro_t</code></p>
+<p><code>class_ro_t</code>的结构体定义：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">struct class_ro_t &#123;</span><br><span class="line">    uint32_t flags;</span><br><span class="line">    uint32_t instanceStart;</span><br><span class="line">    uint32_t instanceSize;</span><br><span class="line">#ifdef __LP64__</span><br><span class="line">    uint32_t reserved;</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">    const uint8_t * ivarLayout;</span><br><span class="line">    </span><br><span class="line">    const char * name;</span><br><span class="line">    method_list_t * baseMethodList;</span><br><span class="line">    protocol_list_t * baseProtocols;</span><br><span class="line">    const ivar_list_t * ivars;</span><br><span class="line"></span><br><span class="line">    const uint8_t * weakIvarLayout;</span><br><span class="line">    property_list_t *baseProperties;</span><br><span class="line"></span><br><span class="line">    method_list_t *baseMethods() const &#123;</span><br><span class="line">        return baseMethodList;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><code>class_ro_t</code> 中 <code>method_list_t</code>、<code>property_list_t</code>与<code>property_list_t</code>都继承自<code>entsize_list_tt</code>，<code>protocol_list_t</code> 存储了 <code>protocol_ref_t</code>列表（也就是<code>protocol_t</code>指针列表）。<code>class_ro_t</code> 存储的大多都是编译时信息就确定的信息</p>
+<h3 id="class-rw-t"><a href="#class-rw-t" class="headerlink" title="class_rw_t"></a>class_rw_t</h3><p><code>class_rw_t</code>结构体定义</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">struct class_rw_t &#123;</span><br><span class="line">    // Be warned that Symbolication knows the layout of this structure.</span><br><span class="line">    uint32_t flags;</span><br><span class="line">    uint32_t version;</span><br><span class="line"></span><br><span class="line">    const class_ro_t *ro;</span><br><span class="line"></span><br><span class="line">    method_array_t methods; </span><br><span class="line">    property_array_t properties;</span><br><span class="line">    protocol_array_t protocols;</span><br><span class="line"></span><br><span class="line">    Class firstSubclass;</span><br><span class="line">    Class nextSiblingClass;</span><br><span class="line"></span><br><span class="line">    char *demangledName;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>class_rw_t</code> 提供了运行时类拓展的能力，而<code>class_ro_t</code>存储的大多是编译时就确定的信息。虽然二者都包含了类的方法、属性以及协议等信息，但列表的实现方式不尽相同。<br><code>class_rw_t</code>中的 <code>method_array_t</code>、<code>property_array_t</code>与<code>protocol_array_t</code> 都继承自<code>list_array_tt</code>,<code>list_array_tt</code>真正的为运行时提供了拓展能力，因为<code>list_array_tt</code>可以存储list指针，内容有三种：</p>
+<ol>
+<li>空</li>
+<li>entsize_list_tt指针</li>
+<li>entsize_list_tt指针数组</li>
+</ol>
+<h3 id="realizeClass"><a href="#realizeClass" class="headerlink" title="realizeClass"></a>realizeClass</h3><h3 id="Category"><a href="#Category" class="headerlink" title="Category"></a>Category</h3><h3 id="Method"><a href="#Method" class="headerlink" title="Method"></a>Method</h3><h3 id="IMP"><a href="#IMP" class="headerlink" title="IMP"></a>IMP</h3><h3 id="Ivar"><a href="#Ivar" class="headerlink" title="Ivar"></a>Ivar</h3><h3 id="objc-property-t"><a href="#objc-property-t" class="headerlink" title="objc_property_t"></a>objc_property_t</h3><h3 id="protocol-t"><a href="#protocol-t" class="headerlink" title="protocol_t"></a>protocol_t</h3><h1 id="消息发送"><a href="#消息发送" class="headerlink" title="消息发送"></a>消息发送</h1><h3 id="objc-msgSend流程"><a href="#objc-msgSend流程" class="headerlink" title="objc_msgSend流程"></a>objc_msgSend流程</h3><ol>
+<li>检测这个<code>selector</code>是否要忽略</li>
+<li>检测<code>target</code>是否为<code>nil</code></li>
+<li>从<code>cache</code>中查找对应的函数</li>
+<li><code>cache</code>找不到，就从方法分发表中查找</li>
+<li>方法分发表中还找不到就到超类中查找，直到<code>NSObject</code></li>
+<li>如果还找不到就进入<strong>动态方法解析</strong></li>
+</ol>
+<h3 id="动态方法解析"><a href="#动态方法解析" class="headerlink" title="动态方法解析"></a>动态方法解析</h3><p><img src="media/15177558941335/15188578544407.jpg" alt=""></p>
+<h1 id="消息转发"><a href="#消息转发" class="headerlink" title="消息转发"></a>消息转发</h1><p>#健壮的实例变量 (Non Fragile ivars)</p>
+<h1 id="Objective-C-Associated-Objects"><a href="#Objective-C-Associated-Objects" class="headerlink" title="Objective-C Associated Objects"></a>Objective-C Associated Objects</h1><h1 id="Method-Swizzling-方法替换"><a href="#Method-Swizzling-方法替换" class="headerlink" title="Method Swizzling 方法替换"></a>Method Swizzling 方法替换</h1><h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/iOS/" rel="tag"># iOS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/01/17/Http网络协议/" rel="next" title="Http 网络协议">
+                <i class="fa fa-chevron-left"></i> Http 网络协议
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/25/objective_c 中__weak的实现原理/" rel="prev" title="objective_c 中__weak的实现原理">
+                objective_c 中__weak的实现原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础概念"><span class="nav-number">1.</span> <span class="nav-text">基础概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SEL"><span class="nav-number">1.1.</span> <span class="nav-text">SEL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#id"><span class="nav-number">1.2.</span> <span class="nav-text">id</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Class"><span class="nav-number">1.3.</span> <span class="nav-text">Class</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cache-t"><span class="nav-number">1.4.</span> <span class="nav-text">cache_t</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#class-data-bits-t"><span class="nav-number">1.5.</span> <span class="nav-text">class_data_bits_t</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#class-ro-t"><span class="nav-number">1.6.</span> <span class="nav-text">class_ro_t</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#class-rw-t"><span class="nav-number">1.7.</span> <span class="nav-text">class_rw_t</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#realizeClass"><span class="nav-number">1.8.</span> <span class="nav-text">realizeClass</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Category"><span class="nav-number">1.9.</span> <span class="nav-text">Category</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Method"><span class="nav-number">1.10.</span> <span class="nav-text">Method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IMP"><span class="nav-number">1.11.</span> <span class="nav-text">IMP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ivar"><span class="nav-number">1.12.</span> <span class="nav-text">Ivar</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#objc-property-t"><span class="nav-number">1.13.</span> <span class="nav-text">objc_property_t</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#protocol-t"><span class="nav-number">1.14.</span> <span class="nav-text">protocol_t</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#消息发送"><span class="nav-number"></span> <span class="nav-text">消息发送</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#objc-msgSend流程"><span class="nav-number">0.1.</span> <span class="nav-text">objc_msgSend流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#动态方法解析"><span class="nav-number">0.2.</span> <span class="nav-text">动态方法解析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#消息转发"><span class="nav-number"></span> <span class="nav-text">消息转发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Objective-C-Associated-Objects"><span class="nav-number"></span> <span class="nav-text">Objective-C Associated Objects</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Method-Swizzling-方法替换"><span class="nav-number"></span> <span class="nav-text">Method Swizzling 方法替换</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number"></span> <span class="nav-text">总结</span></a></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
