@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ReactiveCocoa," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="最近打算好好学习下ReactiveCocoa，个人认为最好的学习方式就是看官方文档。这篇基本操作符的介绍，也是翻译自官方文档。  基本操作符本文档解释了ReactiveCocoa中最常用的操作符，并包含了演示其用法的的示例适用于sequences 和 signal的操作符被称为stream的操作符 执行信号产生的副作用大多数信号都是冷信号，这意味着直到被订阅它们才会生效。订阅后，信号或者他的订阅">
+<meta name="keywords" content="ReactiveCocoa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReactiveCocoa 基本操作符">
+<meta property="og:url" content="http://yoursite.com/2018/04/15/ReactiveCocoa-基本操作符/index.html">
+<meta property="og:site_name" content="Mochangxing">
+<meta property="og:description" content="最近打算好好学习下ReactiveCocoa，个人认为最好的学习方式就是看官方文档。这篇基本操作符的介绍，也是翻译自官方文档。  基本操作符本文档解释了ReactiveCocoa中最常用的操作符，并包含了演示其用法的的示例适用于sequences 和 signal的操作符被称为stream的操作符 执行信号产生的副作用大多数信号都是冷信号，这意味着直到被订阅它们才会生效。订阅后，信号或者他的订阅">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-04-15T08:12:09.472Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReactiveCocoa 基本操作符">
+<meta name="twitter:description" content="最近打算好好学习下ReactiveCocoa，个人认为最好的学习方式就是看官方文档。这篇基本操作符的介绍，也是翻译自官方文档。  基本操作符本文档解释了ReactiveCocoa中最常用的操作符，并包含了演示其用法的的示例适用于sequences 和 signal的操作符被称为stream的操作符 执行信号产生的副作用大多数信号都是冷信号，这意味着直到被订阅它们才会生效。订阅后，信号或者他的订阅">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/15/ReactiveCocoa-基本操作符/"/>
+
+
+
+
+
+  <title>ReactiveCocoa 基本操作符 | Mochangxing</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mochangxing</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/15/ReactiveCocoa-基本操作符/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="John Doe">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ReactiveCocoa 基本操作符</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-15T14:03:12+08:00">
+                2018-04-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>最近打算好好学习下ReactiveCocoa，个人认为最好的学习方式就是看官方文档。这篇基本操作符的介绍，也是翻译自<a href="https://github.com/ReactiveCocoa/ReactiveCocoa/blob/v2.5/Documentation/BasicOperators.md" target="_blank" rel="noopener">官方文档</a>。</p>
+</blockquote>
+<h1 id="基本操作符"><a href="#基本操作符" class="headerlink" title="基本操作符"></a>基本操作符</h1><p>本文档解释了ReactiveCocoa中最常用的操作符，并包含了演示其用法的的示例<br>适用于<strong><code>sequences</code></strong> 和 <strong><code>signal</code></strong>的操作符被称为<strong><code>stream</code></strong>的操作符</p>
+<h2 id="执行信号产生的副作用"><a href="#执行信号产生的副作用" class="headerlink" title="执行信号产生的副作用"></a>执行信号产生的副作用</h2><p>大多数信号都是冷信号，这意味着直到被<strong>订阅</strong>它们才会生效。<br>订阅后，信号或者他的订阅者可以执行，例如打印到控制台、发起网络请求、更新UI等操作。</p>
+<p>###订阅（Subscription）</p>
+<p><code>-subscribe</code>系列方法可以访问<code>signal</code>的当前以及未来的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RACSignal *letters = [@&quot;A B C D E F G H I&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence.signal;</span><br><span class="line"></span><br><span class="line">// Outputs: A B C D E F G H I</span><br><span class="line">[letters subscribeNext:^(NSString *x) &#123;</span><br><span class="line">    NSLog(@&quot;%@&quot;, x);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>对于冷信号来说，每一次订阅都将执行一次副作用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">__block unsigned subscriptions = 0;</span><br><span class="line">   </span><br><span class="line">   RACSignal *loggingSignal = [RACSignal createSignal:^RACDisposable *(id &lt;RACSubscriber&gt; subscriber) &#123;</span><br><span class="line">       subscriptions++;</span><br><span class="line">       [subscriber sendCompleted];</span><br><span class="line">       return nil;</span><br><span class="line">   &#125;];</span><br><span class="line">   </span><br><span class="line">   // Outputs:</span><br><span class="line">   // subscription 1</span><br><span class="line">   [loggingSignal subscribeCompleted:^&#123;</span><br><span class="line">       NSLog(@&quot;subscriptions %lu&quot;, subscriptions);</span><br><span class="line">   &#125;];</span><br><span class="line">   </span><br><span class="line">   // Outputs:</span><br><span class="line">   // subscription 2</span><br><span class="line">   [loggingSignal subscribeCompleted:^&#123;</span><br><span class="line">       NSLog(@&quot;subscriptions %lu&quot;, subscriptions);</span><br><span class="line">   &#125;];</span><br></pre></td></tr></table></figure>
+<p>这种行为可以使用过<code>connection</code>来改变。</p>
+<p>###注入副作用（Injecting effect）</p>
+<p><code>-do</code>系列方法可以给<code>signal</code>添加副作用，而不需要<strong>订阅</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">__block unsigned subscriptions = 0;</span><br><span class="line"></span><br><span class="line">    RACSignal *loggingSignal = [RACSignal createSignal:^RACDisposable *(id &lt;RACSubscriber&gt; subscriber) &#123;</span><br><span class="line">        subscriptions++;</span><br><span class="line">        [subscriber sendCompleted];</span><br><span class="line">        return nil;</span><br><span class="line">    &#125;];</span><br><span class="line"></span><br><span class="line">    // Does not output anything yet</span><br><span class="line">    [loggingSignal doCompleted:^&#123;</span><br><span class="line">        NSLog(@&quot;about to complete subscription %u&quot;, subscriptions);</span><br><span class="line">    &#125;];</span><br><span class="line"></span><br><span class="line">    // Outputs:</span><br><span class="line">    // about to complete subscription 1</span><br><span class="line">    // subscription 1</span><br><span class="line">    [loggingSignal subscribeCompleted:^&#123;</span><br><span class="line">        NSLog(@&quot;subscriptions %lu&quot;, subscriptions);</span><br><span class="line">    &#125;];</span><br></pre></td></tr></table></figure>
+<h2 id="变换Streams"><a href="#变换Streams" class="headerlink" title="变换Streams"></a>变换Streams</h2><p>变换操作符可以将单个<code>stream</code>变换成一个新的<code>stream</code></p>
+<h3 id="映射（Mapping）"><a href="#映射（Mapping）" class="headerlink" title="映射（Mapping）"></a>映射（Mapping）</h3><p><code>-map:</code>方法用于将<code>stream</code>中的值转换，并基于转换后的新值创建一个新的<code>stream</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">RACSequence *letters = [@&quot;A, B,C,D,E,F G,H, I&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line">    </span><br><span class="line">// Contains: AA BB CC DD EE FF GG HH II</span><br><span class="line">[letters map:^id(NSString * value) &#123;</span><br><span class="line">   value = [value stringByAppendingString:value];</span><br><span class="line">   return value;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<h3 id="过滤（Filtering）"><a href="#过滤（Filtering）" class="headerlink" title="过滤（Filtering）"></a>过滤（Filtering）</h3><p><code>-filter:</code>方法使用一个block，来筛选出符合条件的值，并生成新的<code>stream</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RACSequence *numbers = [@&quot;1 2 3 4 5 6 7 8 9&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line">    </span><br><span class="line">// Contains: 2 4 6 8</span><br><span class="line">RACSequence *filtered = [numbers filter:^BOOL(NSNumber * value) &#123;</span><br><span class="line">   return value.intValue % 2 == 0;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<h2 id="结合流（Combining-Streams）"><a href="#结合流（Combining-Streams）" class="headerlink" title="结合流（Combining Streams）"></a>结合流（Combining Streams）</h2><p>结合操作符可以将多个stream合并成单个stream</p>
+<h3 id="连接（Concatenating）"><a href="#连接（Concatenating）" class="headerlink" title="连接（Concatenating）"></a>连接（Concatenating）</h3><p><code>-concat:</code>方法可以将一个<code>stream</code>拼接在另一个<code>stream</code>后面</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RACSequence *letters = [@&quot;A B C D E F G H I&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line">RACSequence *numbers = [@&quot;1 2 3 4 5 6 7 8 9&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line"></span><br><span class="line">// Contains: A B C D E F G H I 1 2 3 4 5 6 7 8 9</span><br><span class="line">RACSequence *concatenated = [letters concat:numbers];</span><br></pre></td></tr></table></figure>
+<h3 id="扁平化（Flattening）"><a href="#扁平化（Flattening）" class="headerlink" title="扁平化（Flattening）"></a>扁平化（Flattening）</h3><p><code>-flatten</code>操作符用于包含<code>stream</code>的<code>stream</code>，将<code>stream</code>中的值也就是<code>stream</code>，组合成一个新的<code>stream</code></p>
+<p>序列的连接</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RACSequence *letters = [@&quot;A B C D E F G H I&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line">RACSequence *numbers = [@&quot;1 2 3 4 5 6 7 8 9&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line">RACSequence *sequenceOfSequences = @[letters, numbers].rac_sequence;</span><br><span class="line">   </span><br><span class="line">// Contains: A B C D E F G H I 1 2 3 4 5 6 7 8 9</span><br><span class="line">RACSequence *flattenedSequence = [sequenceOfSequences flatten];</span><br></pre></td></tr></table></figure>
+<p>信号的合并</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">RACSubject *letters = [RACSubject subject];</span><br><span class="line">RACSubject *numbers = [RACSubject subject];</span><br><span class="line">RACSignal *signalOfSignals = [RACSignal createSignal:^ RACDisposable * (id&lt;RACSubscriber&gt; subscriber) &#123;</span><br><span class="line">    [subscriber sendNext:letters];</span><br><span class="line">    [subscriber sendNext:numbers];</span><br><span class="line">    [subscriber sendCompleted];</span><br><span class="line">    return nil;</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">RACSignal *flattened = [signalOfSignals flatten];</span><br><span class="line"></span><br><span class="line">// Outputs: A 1 B C 2</span><br><span class="line">[flattened subscribeNext:^(NSString *x) &#123;</span><br><span class="line">    NSLog(@&quot;%@&quot;, x);</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">[letters sendNext:@&quot;A&quot;];</span><br><span class="line">[numbers sendNext:@&quot;1&quot;];</span><br><span class="line">[letters sendNext:@&quot;B&quot;];</span><br><span class="line">[letters sendNext:@&quot;C&quot;];</span><br><span class="line">[numbers sendNext:@&quot;2&quot;];</span><br></pre></td></tr></table></figure>
+<h3 id="映射和扁平化（Mapping-and-Flattening）"><a href="#映射和扁平化（Mapping-and-Flattening）" class="headerlink" title="映射和扁平化（Mapping and Flattening）"></a>映射和扁平化（Mapping and Flattening）</h3><p>扁平化本身并不是很意思，但是理解其工作原理对于<code>flattenMap</code>操作符来说很重要</p>
+<p><strong><code>-flattenMap:</code></strong>操作符用于将流中的每一个值转换成一个新的流，然后再将所有返会的流扁平化成单个的流。换句话说，就是先执行<code>-flatten</code>操作再执行<code>-map:</code>操作。</p>
+<p><strong><code>-flattenMap:</code>操作符可以用来拓展和编辑序列
+</strong><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">RACSequence *numbers = [@&quot;1 2 3 4 5 6 7 8 9&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence;</span><br><span class="line"></span><br><span class="line">// Contains: 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9</span><br><span class="line">RACSequence *extended = [numbers flattenMap:^RACStream *(NSNumber * value) &#123;</span><br><span class="line">   return @[value, value].rac_sequence;</span><br><span class="line">&#125;];</span><br><span class="line">    </span><br><span class="line">// Contains: 1_ 3_ 5_ 7_ 9_</span><br><span class="line">RACSequence*edited = [numbers flattenMap:^RACStream *(NSString *value) &#123;</span><br><span class="line">   if(value.intValue %2 == 0)&#123;</span><br><span class="line">       return [RACSequence empty];</span><br><span class="line">   &#125; else &#123;</span><br><span class="line">       return  [RACSequence return:[value stringByAppendingString:@&quot;_&quot;]];</span><br><span class="line">   &#125;</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure></p>
+<p>也可以用来创建多个自动重组的信号</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">RACSignal *letters = [@&quot;A B C D E F G H I&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence.signal;</span><br><span class="line"></span><br><span class="line">[[letters flattenMap:^(NSString *letter) &#123;</span><br><span class="line">   return [RACSignal return:[letter stringByAppendingString:letter]];</span><br><span class="line">&#125;] subscribeCompleted:^&#123;</span><br><span class="line">   NSLog(@&quot;All database entries saved successfully.&quot;);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<h2 id="组合信号（Combining-Signal）"><a href="#组合信号（Combining-Signal）" class="headerlink" title="组合信号（Combining Signal）"></a>组合信号（Combining Signal）</h2><p>连接操作符可以将多个信号组合成单个信号</p>
+<h3 id="序列化（Sequencing）"><a href="#序列化（Sequencing）" class="headerlink" title="序列化（Sequencing）"></a>序列化（Sequencing）</h3><p><code>-then:</code>操作符开始于一个原始信号，并等待其完成，然后只转发新信号的值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">RACSignal *letters = [@&quot;A B C D E F G H I&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence.signal;</span><br><span class="line">RACSignal *sequenced = [[letters doNext:^(id x) &#123;</span><br><span class="line">        NSLog(@&quot;%@&quot;,x);</span><br><span class="line">    &#125;] then:^RACSignal * &#123;</span><br><span class="line">        return [@&quot;1 2 3 4 5 6 7 8 9&quot; componentsSeparatedByString:@&quot; &quot;].rac_sequence.signal;</span><br><span class="line">    &#125;];</span><br></pre></td></tr></table></figure>
+<h3 id="合并（Merging）"><a href="#合并（Merging）" class="headerlink" title="合并（Merging）"></a>合并（Merging）</h3><p><code>+merge:</code>操作符将那些从多个信号到达的值，转发到单个信号流中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">RACSubject *letters = [RACSubject subject];</span><br><span class="line">RACSubject *numbers = [RACSubject subject];</span><br><span class="line">RACSignal *merged = [RACSignal merge:@[ letters, numbers ]];</span><br><span class="line"></span><br><span class="line">// Outputs: A 1 B C 2</span><br><span class="line">[merged subscribeNext:^(NSString *x) &#123;</span><br><span class="line">    NSLog(@&quot;%@&quot;, x);</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">[letters sendNext:@&quot;A&quot;];</span><br><span class="line">[numbers sendNext:@&quot;1&quot;];</span><br><span class="line">[letters sendNext:@&quot;B&quot;];</span><br><span class="line">[letters sendNext:@&quot;C&quot;];</span><br><span class="line">[numbers sendNext:@&quot;2&quot;];</span><br></pre></td></tr></table></figure>
+<h3 id="合并最新值（Combining-latest-values）"><a href="#合并最新值（Combining-latest-values）" class="headerlink" title="合并最新值（Combining latest values）"></a>合并最新值（Combining latest values）</h3><p><strong><code>+combineLatest:</code></strong> 和 <strong><code>+combineLatest:reduce:</code></strong>方法将观察多个信号的变化，当其中一个信号发生变化时，就将所有信号的最新值发送出去。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">RACSubject *letters = [RACSubject subject];</span><br><span class="line">RACSubject *numbers = [RACSubject subject];</span><br><span class="line">RACSignal *combined = [RACSignal</span><br><span class="line">    combineLatest:@[ letters, numbers ]</span><br><span class="line">    reduce:^(NSString *letter, NSString *number) &#123;</span><br><span class="line">        return [letter stringByAppendingString:number];</span><br><span class="line">    &#125;];</span><br><span class="line"></span><br><span class="line">// Outputs: B1 B2 C2 C3</span><br><span class="line">[combined subscribeNext:^(id x) &#123;</span><br><span class="line">    NSLog(@&quot;%@&quot;, x);</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">[letters sendNext:@&quot;A&quot;];</span><br><span class="line">[letters sendNext:@&quot;B&quot;];</span><br><span class="line">[numbers sendNext:@&quot;1&quot;];</span><br><span class="line">[numbers sendNext:@&quot;2&quot;];</span><br><span class="line">[letters sendNext:@&quot;C&quot;];</span><br><span class="line">[numbers sendNext:@&quot;3&quot;];</span><br></pre></td></tr></table></figure>
+<p><strong>注意，组合信号只会在所有输入发送至少一个输入时发送其第一个值。在上面的示例中，@”A”从未转发，因为numbers尚未发送值。</strong></p>
+<h3 id="切换"><a href="#切换" class="headerlink" title="切换"></a>切换</h3><p><code>-switchToLatest</code>操作符作用于“信号的信号”，并且总是转发从最新的信号的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">RACSubject *letters = [RACSubject subject];</span><br><span class="line">RACSubject *numbers = [RACSubject subject];</span><br><span class="line">RACSubject *signalOfSignals = [RACSubject subject];</span><br><span class="line"></span><br><span class="line">RACSignal *switched = [signalOfSignals switchToLatest];</span><br><span class="line"></span><br><span class="line">// Outputs: A B 1 D</span><br><span class="line">[switched subscribeNext:^(NSString *x) &#123;</span><br><span class="line">    NSLog(@&quot;%@&quot;, x);</span><br><span class="line">&#125;];</span><br><span class="line"></span><br><span class="line">[signalOfSignals sendNext:letters];</span><br><span class="line">[letters sendNext:@&quot;A&quot;];</span><br><span class="line">[letters sendNext:@&quot;B&quot;];</span><br><span class="line"></span><br><span class="line">[signalOfSignals sendNext:numbers];</span><br><span class="line">[letters sendNext:@&quot;C&quot;];</span><br><span class="line">[numbers sendNext:@&quot;1&quot;];</span><br><span class="line"></span><br><span class="line">[signalOfSignals sendNext:letters];</span><br><span class="line">[numbers sendNext:@&quot;2&quot;];</span><br><span class="line">[letters sendNext:@&quot;D&quot;];</span><br></pre></td></tr></table></figure>
+<p>以上就是ReactiveCocoa最常用的操作符的介绍</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ReactiveCocoa/" rel="tag"># ReactiveCocoa</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/07/找一个靠谱的iOS面试题/" rel="next" title="找一个靠谱的iOS面试题">
+                <i class="fa fa-chevron-left"></i> 找一个靠谱的iOS面试题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本操作符"><span class="nav-number">1.</span> <span class="nav-text">基本操作符</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#执行信号产生的副作用"><span class="nav-number">1.1.</span> <span class="nav-text">执行信号产生的副作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变换Streams"><span class="nav-number">1.2.</span> <span class="nav-text">变换Streams</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#映射（Mapping）"><span class="nav-number">1.2.1.</span> <span class="nav-text">映射（Mapping）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#过滤（Filtering）"><span class="nav-number">1.2.2.</span> <span class="nav-text">过滤（Filtering）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结合流（Combining-Streams）"><span class="nav-number">1.3.</span> <span class="nav-text">结合流（Combining Streams）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#连接（Concatenating）"><span class="nav-number">1.3.1.</span> <span class="nav-text">连接（Concatenating）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扁平化（Flattening）"><span class="nav-number">1.3.2.</span> <span class="nav-text">扁平化（Flattening）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#映射和扁平化（Mapping-and-Flattening）"><span class="nav-number">1.3.3.</span> <span class="nav-text">映射和扁平化（Mapping and Flattening）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#组合信号（Combining-Signal）"><span class="nav-number">1.4.</span> <span class="nav-text">组合信号（Combining Signal）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#序列化（Sequencing）"><span class="nav-number">1.4.1.</span> <span class="nav-text">序列化（Sequencing）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#合并（Merging）"><span class="nav-number">1.4.2.</span> <span class="nav-text">合并（Merging）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#合并最新值（Combining-latest-values）"><span class="nav-number">1.4.3.</span> <span class="nav-text">合并最新值（Combining latest values）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#切换"><span class="nav-number">1.4.4.</span> <span class="nav-text">切换</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">John Doe</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Muse</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
