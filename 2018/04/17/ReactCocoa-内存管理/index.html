@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="内存管理ReactiveCoCoa的内存管理相当的复杂，不过最终的结果是你可以不通过持有信号来处理他们 如果ReactiveCoCoa框架要求你持有每一个信号，它使用起来将会很笨重，对于像网络请求等这些在未来使用的一次性信号来说，更是如此。你必须将长期存在的信号保存在属性中，当你完成相关操作后，还要确保将其清除，这很没意思。 订阅者（Subscribers）在进一步讨论之前，需要注意的是：subs">
+<meta name="keywords" content="ReactiveCoCoa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ReactiveCoCoa 内存管理">
+<meta property="og:url" content="http://yoursite.com/2018/04/17/ReactCocoa-内存管理/index.html">
+<meta property="og:site_name" content="Mochangxing">
+<meta property="og:description" content="内存管理ReactiveCoCoa的内存管理相当的复杂，不过最终的结果是你可以不通过持有信号来处理他们 如果ReactiveCoCoa框架要求你持有每一个信号，它使用起来将会很笨重，对于像网络请求等这些在未来使用的一次性信号来说，更是如此。你必须将长期存在的信号保存在属性中，当你完成相关操作后，还要确保将其清除，这很没意思。 订阅者（Subscribers）在进一步讨论之前，需要注意的是：subs">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-04-17T15:59:41.818Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ReactiveCoCoa 内存管理">
+<meta name="twitter:description" content="内存管理ReactiveCoCoa的内存管理相当的复杂，不过最终的结果是你可以不通过持有信号来处理他们 如果ReactiveCoCoa框架要求你持有每一个信号，它使用起来将会很笨重，对于像网络请求等这些在未来使用的一次性信号来说，更是如此。你必须将长期存在的信号保存在属性中，当你完成相关操作后，还要确保将其清除，这很没意思。 订阅者（Subscribers）在进一步讨论之前，需要注意的是：subs">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/17/ReactCocoa-内存管理/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>ReactiveCoCoa 内存管理 | Mochangxing</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mochangxing</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/17/ReactCocoa-内存管理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ReactiveCoCoa 内存管理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-17T22:47:06+08:00">2018-04-17</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><p>ReactiveCoCoa的内存管理相当的复杂，不过最终的结果是<strong>你可以不通过持有信号来处理他们</strong></p>
+<p>如果ReactiveCoCoa框架要求你持有每一个信号，它使用起来将会很笨重，对于像网络请求等这些在未来使用的一次性信号来说，更是如此。你必须将长期存在的信号保存在属性中，当你完成相关操作后，还要确保将其清除，这很没意思。</p>
+<h3 id="订阅者（Subscribers）"><a href="#订阅者（Subscribers）" class="headerlink" title="订阅者（Subscribers）"></a>订阅者（Subscribers）</h3><p>在进一步讨论之前，需要注意的是：<code>subscribeNext:error:completed:</code>（及其变体）会在<code>block</code>内隐式创建订阅者。因此在block中持有的任何对象，都会被订阅者持有。就像其他任何对象一样，self如果没有直接或间接引用它，它们 将不会被保留。</p>
+<h3 id="有限或者短期的信号（Finite-Or-Short-Lived-Signals）"><a href="#有限或者短期的信号（Finite-Or-Short-Lived-Signals）" class="headerlink" title="有限或者短期的信号（Finite Or Short-Lived Signals）"></a>有限或者短期的信号（Finite Or Short-Lived Signals）</h3><p>RAC内存管理最重要的指导原则是，订阅关系会在完成或者发生错误后终结，并且订阅者会被移除。</p>
+<p>举个栗子，假如你有如下代码在view controller里</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">self.disposable = [signal subscribeCompleted:^&#123;</span><br><span class="line">    doSomethingPossiblyInvolving(self);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>内存管理就像这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">view controller -&gt; RACDisposable -&gt; RACSignal -&gt; RACSubscriber -&gt; view controller</span><br></pre></td></tr></table></figure>
+<p>然而，一旦signal结束这种<code>RACSignal -&gt; RACSubscriber</code>关系就会被拆除 ，从而打破了引用环。<br>通常，这正是你所需要的，因为RACSignal的生命周期自然会匹配事件流的逻辑生命周期。</p>
+<h3 id="无限信号-Infinite-Signals"><a href="#无限信号-Infinite-Signals" class="headerlink" title="无限信号(Infinite Signals)"></a>无限信号(Infinite Signals)</h3><p>无线信号（或者存活时间太久以致它们可能是无限的信号），并不会自动释放。这时候<code>disposables</code>就派上用场了<br><strong>处理（也就是调用<code>disposable</code>的<code>dispose</code>方法）订阅关系将会移除关联的订阅者，</strong>，并将优雅地清理相关的资源。对于订阅者而言，就好像信号已经完成或者发生了错误。其他的订阅者并不受影响。<br>如果您必须手动管理订阅的生命周期，<a href="https://github.com/ReactiveCocoa/ReactiveCocoa/blob/v2.5/Documentation/DesignGuidelines.md#avoid-explicit-subscriptions-and-disposal" target="_blank" rel="noopener">那么可能有更好的方法来执行您想要的操作</a>。</p>
+<h3 id="来自于self的信号（Signals-Derived-from-self）"><a href="#来自于self的信号（Signals-Derived-from-self）" class="headerlink" title="来自于self的信号（Signals Derived from self）"></a>来自于<code>self</code>的信号（Signals Derived from self）</h3><p>虽然，这里仍然存在一些棘手的中间情况。任何时候信号的生命周期都与调用范围联系在一起，你将有一个更难打破的引用环。<br>这通常发生在使用<code>RACObserve()</code>关联<code>self</code>的key path，并需要使用<code>block</code>捕获<code>self</code>的时候。<br>最简单的办法是使用__weak</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">__weak id weakSelf = self;</span><br><span class="line">[RACObserve(self, username) subscribeNext:^(NSString *username) &#123;</span><br><span class="line">    id strongSelf = weakSelf;</span><br><span class="line">    [strongSelf validateUsername];</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>或者，在引入 <a href="https://github.com/jspahrsummers/libextobjc/blob/master/extobjc/EXTScope.h" target="_blank" rel="noopener">EXTScope.h</a> 头文件后</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@weakify(self);</span><br><span class="line">[RACObserve(self, username) subscribeNext:^(NSString *username) &#123;</span><br><span class="line">    @strongify(self);</span><br><span class="line">    [self validateUsername];</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>（如果对象不支持弱引用，分别使用，<strong>unsafe_unretained或者@unsafeify替换</strong>weak或@weakify）</p>
+<p>不过，<a href="https://github.com/ReactiveCocoa/ReactiveCocoa/blob/v2.5/Documentation/DesignGuidelines.md#avoid-explicit-subscriptions-and-disposal" target="_blank" rel="noopener">你可以使用更好的模式</a>。例如，上面的例子可以写成</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ self  rac_liftSelector：@selector（validateUsername：）withSignals：RACObserve（self，username），nil ];</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RACSignal * validated = [ RACObserve（self，username）map： ^（NSString * username）&#123;</span><br><span class="line">     //将验证逻辑放在这里。</span><br><span class="line">    return @ YES ; </span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>跟无限信号一样，这可以避免在信号流的<code>block</code>中持有<code>self</code></p>
+<hr>
+<p>为了有效使用ReactiveCocoa，以上就是你所需要的全部信息。然而，还有一点需要解决，只是出于技术上的好奇，或者任何对RAC有贡献的人。</p>
+<p>“不需要持有”的设计目标引出一个问题：我们怎么知道一个信号何时被释放？如果只是创建而没有被持有呢？<br>答案是<em>我们无法知道</em>，但是我们通常可以假设调用者会在当前运行循环迭代中保留信号，如果他们想保留它的话。<br>所以：</p>
+<ol>
+<li>创建的信号会自动添加到全局活动信号集。</li>
+<li>该信号将等待主线程RunLoop的一次循环，然后如果它没有订户，则从活动集中移出。除非信号以某种方式保留，否则它将在此处释放</li>
+<li>如果信号在RunLoop迭代中被订阅了，它将会被保留在信号集里</li>
+<li>当所有订阅者都被移除了，步骤2就会被触发</li>
+</ol>
+<p>如果RunLoop以递归的方式运转，这将适得其反。不过大多数或全部情况下ReactiveCocoa框架会简化使用者的代码。 </p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ReactiveCoCoa/" rel="tag"># ReactiveCoCoa</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/15/ReactiveCocoa-基本操作符/" rel="next" title="ReactiveCocoa 基本操作符">
+                <i class="fa fa-chevron-left"></i> ReactiveCocoa 基本操作符
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Mochangxing</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#内存管理"><span class="nav-number">1.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#订阅者（Subscribers）"><span class="nav-number">1.1.</span> <span class="nav-text">订阅者（Subscribers）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有限或者短期的信号（Finite-Or-Short-Lived-Signals）"><span class="nav-number">1.2.</span> <span class="nav-text">有限或者短期的信号（Finite Or Short-Lived Signals）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#无限信号-Infinite-Signals"><span class="nav-number">1.3.</span> <span class="nav-text">无限信号(Infinite Signals)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#来自于self的信号（Signals-Derived-from-self）"><span class="nav-number">1.4.</span> <span class="nav-text">来自于self的信号（Signals Derived from self）</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mochangxing</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Muse</a> v6.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

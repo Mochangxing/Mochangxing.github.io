@@ -271,6 +271,168 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/17/ReactCocoa-内存管理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/17/ReactCocoa-内存管理/" itemprop="url">
+                  ReactiveCoCoa 内存管理
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-17T22:47:06+08:00">2018-04-17</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><p>ReactiveCoCoa的内存管理相当的复杂，不过最终的结果是<strong>你可以不通过持有信号来处理他们</strong></p>
+<p>如果ReactiveCoCoa框架要求你持有每一个信号，它使用起来将会很笨重，对于像网络请求等这些在未来使用的一次性信号来说，更是如此。你必须将长期存在的信号保存在属性中，当你完成相关操作后，还要确保将其清除，这很没意思。</p>
+<h3 id="订阅者（Subscribers）"><a href="#订阅者（Subscribers）" class="headerlink" title="订阅者（Subscribers）"></a>订阅者（Subscribers）</h3><p>在进一步讨论之前，需要注意的是：<code>subscribeNext:error:completed:</code>（及其变体）会在<code>block</code>内隐式创建订阅者。因此在block中持有的任何对象，都会被订阅者持有。就像其他任何对象一样，self如果没有直接或间接引用它，它们 将不会被保留。</p>
+<h3 id="有限或者短期的信号（Finite-Or-Short-Lived-Signals）"><a href="#有限或者短期的信号（Finite-Or-Short-Lived-Signals）" class="headerlink" title="有限或者短期的信号（Finite Or Short-Lived Signals）"></a>有限或者短期的信号（Finite Or Short-Lived Signals）</h3><p>RAC内存管理最重要的指导原则是，订阅关系会在完成或者发生错误后终结，并且订阅者会被移除。</p>
+<p>举个栗子，假如你有如下代码在view controller里</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">self.disposable = [signal subscribeCompleted:^&#123;</span><br><span class="line">    doSomethingPossiblyInvolving(self);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>内存管理就像这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">view controller -&gt; RACDisposable -&gt; RACSignal -&gt; RACSubscriber -&gt; view controller</span><br></pre></td></tr></table></figure>
+<p>然而，一旦signal结束这种<code>RACSignal -&gt; RACSubscriber</code>关系就会被拆除 ，从而打破了引用环。<br>通常，这正是你所需要的，因为RACSignal的生命周期自然会匹配事件流的逻辑生命周期。</p>
+<h3 id="无限信号-Infinite-Signals"><a href="#无限信号-Infinite-Signals" class="headerlink" title="无限信号(Infinite Signals)"></a>无限信号(Infinite Signals)</h3><p>无线信号（或者存活时间太久以致它们可能是无限的信号），并不会自动释放。这时候<code>disposables</code>就派上用场了<br><strong>处理（也就是调用<code>disposable</code>的<code>dispose</code>方法）订阅关系将会移除关联的订阅者，</strong>，并将优雅地清理相关的资源。对于订阅者而言，就好像信号已经完成或者发生了错误。其他的订阅者并不受影响。<br>如果您必须手动管理订阅的生命周期，<a href="https://github.com/ReactiveCocoa/ReactiveCocoa/blob/v2.5/Documentation/DesignGuidelines.md#avoid-explicit-subscriptions-and-disposal" target="_blank" rel="noopener">那么可能有更好的方法来执行您想要的操作</a>。</p>
+<h3 id="来自于self的信号（Signals-Derived-from-self）"><a href="#来自于self的信号（Signals-Derived-from-self）" class="headerlink" title="来自于self的信号（Signals Derived from self）"></a>来自于<code>self</code>的信号（Signals Derived from self）</h3><p>虽然，这里仍然存在一些棘手的中间情况。任何时候信号的生命周期都与调用范围联系在一起，你将有一个更难打破的引用环。<br>这通常发生在使用<code>RACObserve()</code>关联<code>self</code>的key path，并需要使用<code>block</code>捕获<code>self</code>的时候。<br>最简单的办法是使用__weak</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">__weak id weakSelf = self;</span><br><span class="line">[RACObserve(self, username) subscribeNext:^(NSString *username) &#123;</span><br><span class="line">    id strongSelf = weakSelf;</span><br><span class="line">    [strongSelf validateUsername];</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>或者，在引入 <a href="https://github.com/jspahrsummers/libextobjc/blob/master/extobjc/EXTScope.h" target="_blank" rel="noopener">EXTScope.h</a> 头文件后</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@weakify(self);</span><br><span class="line">[RACObserve(self, username) subscribeNext:^(NSString *username) &#123;</span><br><span class="line">    @strongify(self);</span><br><span class="line">    [self validateUsername];</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>（如果对象不支持弱引用，分别使用，<strong>unsafe_unretained或者@unsafeify替换</strong>weak或@weakify）</p>
+<p>不过，<a href="https://github.com/ReactiveCocoa/ReactiveCocoa/blob/v2.5/Documentation/DesignGuidelines.md#avoid-explicit-subscriptions-and-disposal" target="_blank" rel="noopener">你可以使用更好的模式</a>。例如，上面的例子可以写成</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[ self  rac_liftSelector：@selector（validateUsername：）withSignals：RACObserve（self，username），nil ];</span><br></pre></td></tr></table></figure>
+<p>或者</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RACSignal * validated = [ RACObserve（self，username）map： ^（NSString * username）&#123;</span><br><span class="line">     //将验证逻辑放在这里。</span><br><span class="line">    return @ YES ; </span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>跟无限信号一样，这可以避免在信号流的<code>block</code>中持有<code>self</code></p>
+<hr>
+<p>为了有效使用ReactiveCocoa，以上就是你所需要的全部信息。然而，还有一点需要解决，只是出于技术上的好奇，或者任何对RAC有贡献的人。</p>
+<p>“不需要持有”的设计目标引出一个问题：我们怎么知道一个信号何时被释放？如果只是创建而没有被持有呢？<br>答案是<em>我们无法知道</em>，但是我们通常可以假设调用者会在当前运行循环迭代中保留信号，如果他们想保留它的话。<br>所以：</p>
+<ol>
+<li>创建的信号会自动添加到全局活动信号集。</li>
+<li>该信号将等待主线程RunLoop的一次循环，然后如果它没有订户，则从活动集中移出。除非信号以某种方式保留，否则它将在此处释放</li>
+<li>如果信号在RunLoop迭代中被订阅了，它将会被保留在信号集里</li>
+<li>当所有订阅者都被移除了，步骤2就会被触发</li>
+</ol>
+<p>如果RunLoop以递归的方式运转，这将适得其反。不过大多数或全部情况下ReactiveCocoa框架会简化使用者的代码。 </p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/15/ReactiveCocoa-基本操作符/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1935,7 +2097,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-count">9</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
@@ -1956,7 +2118,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">3</span>
+                      
+                    
+                    <span class="site-state-item-count">4</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
