@@ -350,7 +350,7 @@
       
         
           
-            <h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><p>ReactiveCoCoa的内存管理相当的复杂，不过最终的结果是<strong>你可以不通过持有信号来处理他们</strong></p>
+            <h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>ReactiveCoCoa的内存管理相当的复杂，不过这导致的最终结果是：<strong>你可以不通过持有信号来处理他们</strong></p>
 <p>如果ReactiveCoCoa框架要求你持有每一个信号，它使用起来将会很笨重，对于像网络请求等这些在未来使用的一次性信号来说，更是如此。你必须将长期存在的信号保存在属性中，当你完成相关操作后，还要确保将其清除，这很没意思。</p>
 <h3 id="订阅者（Subscribers）"><a href="#订阅者（Subscribers）" class="headerlink" title="订阅者（Subscribers）"></a>订阅者（Subscribers）</h3><p>在进一步讨论之前，需要注意的是：<code>subscribeNext:error:completed:</code>（及其变体）会在<code>block</code>内隐式创建订阅者。因此在block中持有的任何对象，都会被订阅者持有。就像其他任何对象一样，self如果没有直接或间接引用它，它们 将不会被保留。</p>
 <h3 id="有限或者短期的信号（Finite-Or-Short-Lived-Signals）"><a href="#有限或者短期的信号（Finite-Or-Short-Lived-Signals）" class="headerlink" title="有限或者短期的信号（Finite Or Short-Lived Signals）"></a>有限或者短期的信号（Finite Or Short-Lived Signals）</h3><p>RAC内存管理最重要的指导原则是，订阅关系会在完成或者发生错误后终结，并且订阅者会被移除。</p>
