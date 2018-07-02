@@ -271,6 +271,326 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/02/iOS性能监控/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/02/iOS性能监控/" itemprop="url">
+                  iOS性能监控
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-02T22:32:01+08:00">2018-07-02</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="iOS性能监控"><a href="#iOS性能监控" class="headerlink" title="iOS性能监控"></a>iOS性能监控</h1><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>移动互联网的增长红利已经结束，如何运营好存量用户也变得越来越重要。而随着随着移动互联网的不断发展，用户也越来越关心应用的体验。随着业务不断快速迭代，复杂度不断增加，应用的性能问题势必会随之积累。而在传统的开发流程中，通常需要：线上用户反馈 -&gt; 分析问题原因 -&gt; 解决性能问题 -&gt; 验证等4步。我们必须思考，如何快速发现并解决日渐复杂的业务导致的功能不断迭代所产生的性能问题。近两年，APM技术快速发展，国内厂商更是百花齐放。最近对APM技术做了一个调研，希望以此文章作为一个总结，以加深认识。</p>
+<h3 id="APM"><a href="#APM" class="headerlink" title="APM"></a>APM</h3><p>AMP即 Application Performance Manager，定位于帮助开发团队快速精确地定位性能问题，进而推动应用的性能和用户体验的提升。那么APM关心的性能指标都有哪些呢？如下所示：</p>
+<ul>
+<li>界面卡顿、卡顿堆栈</li>
+<li>网络请求：成功率、状态码、流量、网络响应时间、HTTP与HTTPS的 DNS 解析、TCP握手、SSL握手（HTTP除外）、首包时间等时间</li>
+<li>交互监控：页面加载时间</li>
+<li>启动时间</li>
+<li>崩溃率、崩溃堆栈</li>
+<li>Abort 率：也就是由于内存过高的等原因，被系统杀死的情况</li>
+<li>其他：内存、帧率、CPU使用率、启动时间、电量等</li>
+</ul>
+<p>性能指标如何采集？数据的采集最好尽量避免侵入业务代码，业务无感知的情况下完成采集工作，所以做好的方式是面向切面编程。<br>有了性能日志后，还需要对数据进行分析并定位问题。<br>整体APM流程如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15305507247739.jpg" alt=""></p>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><h4 id="卡顿监控方案："><a href="#卡顿监控方案：" class="headerlink" title="卡顿监控方案："></a>卡顿监控方案：</h4><ol>
+<li><p>FPS监控：通过监控一段连续的FPS计算丢帧率来衡量页面流畅性。</p>
+</li>
+<li><p>主线程监控：开辟一个子线程检测主线程RunLoop，当kCFRunLoopBeforeSources与kCFRunLoopAfterWaiting这两个状态间的耗时超过阈值时，就记为一次卡顿</p>
+</li>
+<li><p>综合监控：由于FPS与主线程卡顿监控容易发生抖动，业界又提出了一种综合方案，结合主线程监控、FPS监控、以及CPU等，作为卡顿的综合判断标准。</p>
+</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15299397869592.jpg" alt=""></p>
+<p>卡顿日志采集上报： 参考PLcrashreporter，构造crash.log日志上报，结合符号表文件进行符号化</p>
+<h4 id="网络监控"><a href="#网络监控" class="headerlink" title="网络监控"></a>网络监控</h4><p>方案1：继承NSURLProtocol 拦截Http请求</p>
+<p>方案2：方法替换，动态代理，针对NSURLSession、NSURLConnection</p>
+<p>方案3：使用fishhook库hook CFNetwork</p>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15300117877345.jpg" alt=""></p>
+<h4 id="冷启动时间"><a href="#冷启动时间" class="headerlink" title="冷启动时间"></a>冷启动时间</h4><p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15300128667611.jpg" alt=""></p>
+<p>t(App 总启动时间) = t1(main()之前的加载时间) + t2(main()之后的加载时间)。</p>
+<p>t1 = 系统的 dylib (动态链接库)和 App 可执行文件的加载时间</p>
+<p>下面的步骤构成了 t1 的时间线：</p>
+<p>Load dylibs -&gt; Rebase -&gt; Bind -&gt; ObjC -&gt; Initializers</p>
+<p>t1比较难统计，目前业界的方案是在+load方法中打点统计，也就是上文时间线的Objc setUp阶段开始统计，但是这种方式是不够精确的。而且t1的大头其实是在Load dylibs阶段。目前只能通过xcode配置，在控制台打印的方式来统计。 </p>
+<p>t2 = main函数执行之后到 AppDelegate 类中的applicationDidFinishLaunching:withOptions:方法执行结束前这段时间</p>
+<h4 id="页面响应时间"><a href="#页面响应时间" class="headerlink" title="页面响应时间"></a>页面响应时间</h4><p>hook ViewController的生命周期</p>
+<h4 id="崩溃率"><a href="#崩溃率" class="headerlink" title="崩溃率"></a>崩溃率</h4><h4 id="Abort率"><a href="#Abort率" class="headerlink" title="Abort率"></a>Abort率</h4><p>目前对于内存过高被杀死的情况是没有办法直接统计的，一般通过排除法来做百分比的统计，原理如下</p>
+<ul>
+<li>程序启动，设置标志位</li>
+<li>程序正常退出，清楚标志</li>
+<li>程序Crash，清楚标志</li>
+<li>程序电量过低导致关机，这个也没办法直接监控，可以加入电量检测来辅助判断</li>
+<li>第二次启动，标志位如果存在，则代表Abort一次，上传后台做统计</li>
+</ul>
+<h4 id="其他性能数据监控：FPS、CPU使用率、内存占用"><a href="#其他性能数据监控：FPS、CPU使用率、内存占用" class="headerlink" title="其他性能数据监控：FPS、CPU使用率、内存占用"></a>其他性能数据监控：FPS、CPU使用率、内存占用</h4>
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/20/谈谈ReactiveCocoa-背后的响应式编程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/20/谈谈ReactiveCocoa-背后的响应式编程/" itemprop="url">
+                  谈谈ReactiveCocoa 函数响应式框架
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-20T00:45:24+08:00">2018-04-20</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h2><p>提纲：</p>
+<h2 id="什么是纯函数（Pure-Function）"><a href="#什么是纯函数（Pure-Function）" class="headerlink" title="什么是纯函数（Pure Function）"></a>什么是纯函数（Pure Function）</h2><p><em>副作用</em>指的是，函数的行为受系统的全局状态所影响</p>
+<h2 id="为什么要有纯函数"><a href="#为什么要有纯函数" class="headerlink" title="为什么要有纯函数"></a>为什么要有纯函数</h2><h2 id="什么是函数式编程"><a href="#什么是函数式编程" class="headerlink" title="什么是函数式编程"></a>什么是函数式编程</h2><h2 id="什么是副作用（Side-Effect），副作用能做什么。"><a href="#什么是副作用（Side-Effect），副作用能做什么。" class="headerlink" title="什么是副作用（Side Effect），副作用能做什么。"></a>什么是副作用（Side Effect），副作用能做什么。</h2><h2 id="什么是函数响应式编程"><a href="#什么是函数响应式编程" class="headerlink" title="什么是函数响应式编程"></a>什么是函数响应式编程</h2><h2 id="什么Monad以及为什么要引入Monad"><a href="#什么Monad以及为什么要引入Monad" class="headerlink" title="什么Monad以及为什么要引入Monad"></a>什么Monad以及为什么要引入Monad</h2><h3 id="bind"><a href="#bind" class="headerlink" title="bind"></a>bind</h3><h3 id="return"><a href="#return" class="headerlink" title="return"></a>return</h3><h2 id="ReactiveCocoa是如何实现响应式编程的"><a href="#ReactiveCocoa是如何实现响应式编程的" class="headerlink" title="ReactiveCocoa是如何实现响应式编程的"></a>ReactiveCocoa是如何实现响应式编程的</h2><h3 id="ReactiveCocoa-bind的实现"><a href="#ReactiveCocoa-bind的实现" class="headerlink" title="ReactiveCocoa bind的实现"></a>ReactiveCocoa bind的实现</h3><h3 id="ReactiveCocoa-return的实现"><a href="#ReactiveCocoa-return的实现" class="headerlink" title="ReactiveCocoa return的实现"></a>ReactiveCocoa return的实现</h3><h3 id="ReactiveCocoa封装的一系列操作符"><a href="#ReactiveCocoa封装的一系列操作符" class="headerlink" title="ReactiveCocoa封装的一系列操作符"></a>ReactiveCocoa封装的一系列操作符</h3><p>Functor:任何类别只要能执行<code>fmap</code>操作，就是一个<code>Functor</code><br><code>fmap</code>就是把一个函数应用在一个盒子里的值上，然后返回一个封装在盒子里的新值；</p>
+<p>对于空值也就是<code>Nothing</code>来说，执行<code>fmap</code>操作后返回的还是<code>Nothing</code></p>
+<p>对于<code>List</code>而言，执行<code>fmap</code>，会将函数应用在<code>List</code>的每一个值都上，并返回一个新的<code>List</code></p>
+<p>总结一下：Functor是能将函数应用在值上的一种类型。换句话说，Functor就是支持将一个值映射成另一个新值的类型</p>
+<p>那如果要将一个函数应用在另一个函数上呢？</p>
+<p>也就是说一个函数执行了<code>fmap</code>操作后可以映射成一个新的函数，因此说函数也是<code>Functor</code><br>函数的<code>fmap</code> 操作就是函数的复合</p>
+<p>Functor:<br>将一个普通函数应用到被封装的值上</p>
+<p>Applicative：<br>将一个封装的函数应用在封装的值上</p>
+<p>Monad：<br>将一个“<strong>接收一个普通值并返回一个被封装的值</strong>”的函数应用在一个被封装的值上，这一任务由函数 <code>&gt;&gt;=</code>(读作“bind”)完成。</p>
+<h2 id="ReactiveCocoa是如何实现Monad的"><a href="#ReactiveCocoa是如何实现Monad的" class="headerlink" title="ReactiveCocoa是如何实现Monad的"></a>ReactiveCocoa是如何实现Monad的</h2><p>RACStream被定义为一种Monad类型，定义了两个基本操作<code>bind</code>个<code>return</code></p>
+<p><code>RACStreamBindBlock</code>可以看做是“<strong>接收一个普通值并返回一个被封装的值</strong>”函数</p>
+<h2 id="IO操作："><a href="#IO操作：" class="headerlink" title="IO操作："></a>IO操作：</h2>
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/17/ReactCocoa-内存管理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1843,220 +2163,13 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/17/Http网络协议/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mochangxing">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mochangxing">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/01/17/Http网络协议/" itemprop="url">
-                  Http 网络协议
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-                
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-01-17T13:32:01+08:00">2017-01-17</time>
-            
-
-            
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h3 id="网络基础"><a href="#网络基础" class="headerlink" title="网络基础"></a>网络基础</h3><p>tcp/ip协议族<br>ip协议<br>tcp协议<br>dns服务<br>uri与url</p>
-<h3 id="简单http协议"><a href="#简单http协议" class="headerlink" title="简单http协议"></a>简单http协议</h3><p>http不保存状态<br>持久链接节省流量：1.长连接（keep-alive）; 2.管线话（pipeline）<br>使用cookie的状态管理</p>
-<h3 id="http报文内的http信息"><a href="#http报文内的http信息" class="headerlink" title="http报文内的http信息"></a>http报文内的http信息</h3><p>请求报文与响应报文结构<br><img src="media/15177516634047/15189246342719.jpg" alt=""></p>
-<p>编码提升传输速率：<br>1.压缩；<br>2.分块<br>Content-Type：<br>Range:获取内容范围<br>内容协商返回最合适的内容</p>
-<h3 id="返回结果状态码"><a href="#返回结果状态码" class="headerlink" title="返回结果状态码"></a>返回结果状态码</h3><p>2xx成功<br>3xx重定向<br>4xx客户端失败<br>5xx服务端失败</p>
-<h3 id="与http协作的web服务器"><a href="#与http协作的web服务器" class="headerlink" title="与http协作的web服务器"></a>与http协作的web服务器</h3><p>通信数据转发程序：代理、网关、隧道<br>代理：<br><img src="media/15177516634047/15189386234933.jpg" alt=""></p>
-<p>使用代理服务器的理由：<br>1.利用缓存减少网络流量<br>2.访问控制</p>
-<p>代理的分类：缓存代理、透明代理</p>
-<p>网关：网关与代理很像，而网关能使通信线路上的服务器提供非http协议服务</p>
-<h3 id="http首部"><a href="#http首部" class="headerlink" title="http首部"></a>http首部</h3><p>首部字段格式：</p>
-<blockquote>
-<p>首部字段名称：字段值<br>4种首部字段类型：</p>
-<ol>
-<li>通用首部字段（General Header Fields）</li>
-<li>请求首部字段</li>
-<li>响应首部字段</li>
-<li>实体首部字段</li>
-</ol>
-</blockquote>
-<p>Cookie:Cookie的工作机制是<strong>用户识别</strong>与<strong>状态管理</strong>。<br>用户识别本身也算一种状态管理。</p>
-<h3 id="确保web安全的https"><a href="#确保web安全的https" class="headerlink" title="确保web安全的https"></a>确保web安全的https</h3><p>http协议中有可能存在信息窃听与身份伪装等安全问题，使用https可以有效地防止这些问题。<br>http的缺点：</p>
-<ul>
-<li>使用明文通信，信息有可能被窃听</li>
-<li>不验证通信方，有可能遭遇身份伪装</li>
-<li>无法验证报文的完整性，有可能信息被篡改</li>
-</ul>
-<p><strong>http + 加密 + 认证 + 完整性保护 = https
-</strong></p>
-<p><img src="media/15177516634047/15189593763237.jpg" alt=""></p>
-<h4 id="加密方式："><a href="#加密方式：" class="headerlink" title="加密方式："></a>加密方式：</h4><ol>
-<li>对称密钥加密：只有一个密钥，加解密都使用同一个密钥</li>
-<li>非对称密钥加密，包含公钥与私钥，公钥是公开的，任何都可以获取，用于加密，私钥用于解密</li>
-</ol>
-<p>https采用混合加密机制：</p>
-<ol>
-<li>使用非对称加密方式交换稍后在对称密钥加密要使用的私有密钥</li>
-<li>在确保交换的私钥安全的前提下，使用对称密钥加密方式加密</li>
-</ol>
-<h4 id="证明公开密钥正确性的证书"><a href="#证明公开密钥正确性的证书" class="headerlink" title="证明公开密钥正确性的证书"></a>证明公开密钥正确性的证书</h4><p><em><strong>但是非对称密钥加密还是存在一些问题：无法证明公钥是货真价实的公钥</strong></em></p>
-<p>为了解决上述问题，可以使用数字证书认证机构（CA，Certificate Authority）和其相关的机构颁发的公开密钥证书 </p>
-<h4 id="https的安全通信机制"><a href="#https的安全通信机制" class="headerlink" title="https的安全通信机制"></a>https的安全通信机制</h4><ol>
-<li>客户端发送Client hello 报文开始SSL通信，报文中包含支持的SSL版本、加密组件列表（所使用的加密算法级以及密钥长度）</li>
-<li>服务端可以进行SSL通信时，会以Server Hello报文作为应答，报文中包含SSL版本、加密组件，加密组件是从接收到的客户端加密组件列表中筛选出来的。</li>
-<li>之后服务端发送Certificate报文，包含公开密钥的证书</li>
-<li>最后服务器发送Server Hello Done 报文通知客户端，最初阶段的SSL握手协商部分结束</li>
-<li>SSL握手结束后，客户端以 Client Key Exchange 报文作为回应，该报文包含通信加密中被称为Pre-master secret 的随机密码串。该报文已使用步骤3中的公钥进行加密</li>
-<li>接着客户端会继续发送 Change Cipher Spec 报文，提示服务端后续的通信将使用 Pre-master secret 密钥加密</li>
-<li>客户端发送Finished。该报文包含链接至今全部报文的整体校验值。此次握手是否成功，以服务端是否能正确解密该报文为准。</li>
-<li>服务端发送 Change Cipher Spec 报文</li>
-<li>服务端发送 Finished 报文</li>
-<li>服务端与客户端的Finished报文交换完毕后，SSL链接就算是建立完成。此处开始进行应用层通协议信，即发送Http响应</li>
-<li>应用层协议通信</li>
-<li>最后由客户端断开SSL链接。断开连接时，客户端发送close_notify报文。</li>
-</ol>
-<p>SSL速度慢：1、网络通信慢；2、大量消耗CPU及内存，导致处理速度慢</p>
-<h3 id="确认访问用户身份的认证"><a href="#确认访问用户身份的认证" class="headerlink" title="确认访问用户身份的认证"></a>确认访问用户身份的认证</h3><h4 id="SSL客户端的认证步骤"><a href="#SSL客户端的认证步骤" class="headerlink" title="SSL客户端的认证步骤"></a>SSL客户端的认证步骤</h4><ol>
-<li>服务器收到需要认证的资源请求，就会发送Certificate Request 报文，要求客户端提供客户端证书</li>
-<li>客户端把客户端证书信息以Client Certificate报文的形式发送给服务端</li>
-<li>服务端验证通过后，领取证书内的公开密钥，然后开始HTTPS通信</li>
-</ol>
-<h4 id="SSL客户端认证采用双因素认证"><a href="#SSL客户端认证采用双因素认证" class="headerlink" title="SSL客户端认证采用双因素认证"></a>SSL客户端认证采用双因素认证</h4><p>第一个认证因素的客户端证书，用来认证客户端计算机，另一个认证因素的密码则用来认证来自用户本人</p>
-<h4 id="基于表单认证"><a href="#基于表单认证" class="headerlink" title="基于表单认证"></a>基于表单认证</h4><p>Session管理以及Cookie的应用<br>由于Http是无状态协议，已认证通过的用户状态无法在协议层面保存。即无法实现状态管理，于是可以使用Cookie来管理Session</p>
-<p><img src="media/15177516634047/15190975324819.jpg" alt=""></p>
-<h3 id="基于HTTP功能追加的协议"><a href="#基于HTTP功能追加的协议" class="headerlink" title="基于HTTP功能追加的协议"></a>基于HTTP功能追加的协议</h3><h4 id="消除瓶颈的SPDY协议"><a href="#消除瓶颈的SPDY协议" class="headerlink" title="消除瓶颈的SPDY协议"></a>消除瓶颈的SPDY协议</h4><p><img src="media/15177516634047/15191113047950.jpg" alt=""></p>
-<p>SPDY功能：</p>
-<ol>
-<li>多路复用</li>
-<li>赋予请求优先级</li>
-<li>压缩HTTP首部</li>
-<li>推送功能</li>
-<li>服务器提示功能</li>
-</ol>
-<h4 id="全双工通信的WebSocket"><a href="#全双工通信的WebSocket" class="headerlink" title="全双工通信的WebSocket"></a>全双工通信的WebSocket</h4><p>WebSocket的主要特点：</p>
-<ol>
-<li>推送功能</li>
-<li>减少通信量</li>
-</ol>
-<p>WebSocket握手过程<br><img src="media/15177516634047/15191121986953.jpg" alt=""></p>
-<h4 id="HTTP-2-0"><a href="#HTTP-2-0" class="headerlink" title="HTTP/2.0"></a>HTTP/2.0</h4><p>改善用户使用Web是的速度体验</p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+  </nav>
+
 
 
           </div>
@@ -2097,7 +2210,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">9</span>
+                    <span class="site-state-item-count">11</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>

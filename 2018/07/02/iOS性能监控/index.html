@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="iOS性能监控背景移动互联网的增长红利已经结束，如何运营好存量用户也变得越来越重要。而随着随着移动互联网的不断发展，用户也越来越关心应用的体验。随着业务不断快速迭代，复杂度不断增加，应用的性能问题势必会随之积累。而在传统的开发流程中，通常需要：线上用户反馈 -&amp;gt; 分析问题原因 -&amp;gt; 解决性能问题 -&amp;gt; 验证等4步。我们必须思考，如何快速发现并解决日渐复杂的业务导致的功能不断迭代所">
+<meta name="keywords" content="Http">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS性能监控">
+<meta property="og:url" content="http://yoursite.com/2018/07/02/iOS性能监控/index.html">
+<meta property="og:site_name" content="Mochangxing">
+<meta property="og:description" content="iOS性能监控背景移动互联网的增长红利已经结束，如何运营好存量用户也变得越来越重要。而随着随着移动互联网的不断发展，用户也越来越关心应用的体验。随着业务不断快速迭代，复杂度不断增加，应用的性能问题势必会随之积累。而在传统的开发流程中，通常需要：线上用户反馈 -&amp;gt; 分析问题原因 -&amp;gt; 解决性能问题 -&amp;gt; 验证等4步。我们必须思考，如何快速发现并解决日渐复杂的业务导致的功能不断迭代所">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15305507247739.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15299397869592.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15300117877345.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15300128667611.jpg">
+<meta property="og:updated_time" content="2018-07-02T17:19:16.169Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS性能监控">
+<meta name="twitter:description" content="iOS性能监控背景移动互联网的增长红利已经结束，如何运营好存量用户也变得越来越重要。而随着随着移动互联网的不断发展，用户也越来越关心应用的体验。随着业务不断快速迭代，复杂度不断增加，应用的性能问题势必会随之积累。而在传统的开发流程中，通常需要：线上用户反馈 -&amp;gt; 分析问题原因 -&amp;gt; 解决性能问题 -&amp;gt; 验证等4步。我们必须思考，如何快速发现并解决日渐复杂的业务导致的功能不断迭代所">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15305507247739.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/07/02/iOS性能监控/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>iOS性能监控 | Mochangxing</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mochangxing</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/02/iOS性能监控/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS性能监控
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-07-02T22:32:01+08:00">2018-07-02</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="iOS性能监控"><a href="#iOS性能监控" class="headerlink" title="iOS性能监控"></a>iOS性能监控</h1><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>移动互联网的增长红利已经结束，如何运营好存量用户也变得越来越重要。而随着随着移动互联网的不断发展，用户也越来越关心应用的体验。随着业务不断快速迭代，复杂度不断增加，应用的性能问题势必会随之积累。而在传统的开发流程中，通常需要：线上用户反馈 -&gt; 分析问题原因 -&gt; 解决性能问题 -&gt; 验证等4步。我们必须思考，如何快速发现并解决日渐复杂的业务导致的功能不断迭代所产生的性能问题。近两年，APM技术快速发展，国内厂商更是百花齐放。最近对APM技术做了一个调研，希望以此文章作为一个总结，以加深认识。</p>
+<h3 id="APM"><a href="#APM" class="headerlink" title="APM"></a>APM</h3><p>AMP即 Application Performance Manager，定位于帮助开发团队快速精确地定位性能问题，进而推动应用的性能和用户体验的提升。那么APM关心的性能指标都有哪些呢？如下所示：</p>
+<ul>
+<li>界面卡顿、卡顿堆栈</li>
+<li>网络请求：成功率、状态码、流量、网络响应时间、HTTP与HTTPS的 DNS 解析、TCP握手、SSL握手（HTTP除外）、首包时间等时间</li>
+<li>交互监控：页面加载时间</li>
+<li>启动时间</li>
+<li>崩溃率、崩溃堆栈</li>
+<li>Abort 率：也就是由于内存过高的等原因，被系统杀死的情况</li>
+<li>其他：内存、帧率、CPU使用率、启动时间、电量等</li>
+</ul>
+<p>性能指标如何采集？数据的采集最好尽量避免侵入业务代码，业务无感知的情况下完成采集工作，所以做好的方式是面向切面编程。<br>有了性能日志后，还需要对数据进行分析并定位问题。<br>整体APM流程如下图所示：</p>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15305507247739.jpg" alt=""></p>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><h4 id="卡顿监控方案："><a href="#卡顿监控方案：" class="headerlink" title="卡顿监控方案："></a>卡顿监控方案：</h4><ol>
+<li><p>FPS监控：通过监控一段连续的FPS计算丢帧率来衡量页面流畅性。</p>
+</li>
+<li><p>主线程监控：开辟一个子线程检测主线程RunLoop，当kCFRunLoopBeforeSources与kCFRunLoopAfterWaiting这两个状态间的耗时超过阈值时，就记为一次卡顿</p>
+</li>
+<li><p>综合监控：由于FPS与主线程卡顿监控容易发生抖动，业界又提出了一种综合方案，结合主线程监控、FPS监控、以及CPU等，作为卡顿的综合判断标准。</p>
+</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15299397869592.jpg" alt=""></p>
+<p>卡顿日志采集上报： 参考PLcrashreporter，构造crash.log日志上报，结合符号表文件进行符号化</p>
+<h4 id="网络监控"><a href="#网络监控" class="headerlink" title="网络监控"></a>网络监控</h4><p>方案1：继承NSURLProtocol 拦截Http请求</p>
+<p>方案2：方法替换，动态代理，针对NSURLSession、NSURLConnection</p>
+<p>方案3：使用fishhook库hook CFNetwork</p>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15300117877345.jpg" alt=""></p>
+<h4 id="冷启动时间"><a href="#冷启动时间" class="headerlink" title="冷启动时间"></a>冷启动时间</h4><p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15299157861354/15300128667611.jpg" alt=""></p>
+<p>t(App 总启动时间) = t1(main()之前的加载时间) + t2(main()之后的加载时间)。</p>
+<p>t1 = 系统的 dylib (动态链接库)和 App 可执行文件的加载时间</p>
+<p>下面的步骤构成了 t1 的时间线：</p>
+<p>Load dylibs -&gt; Rebase -&gt; Bind -&gt; ObjC -&gt; Initializers</p>
+<p>t1比较难统计，目前业界的方案是在+load方法中打点统计，也就是上文时间线的Objc setUp阶段开始统计，但是这种方式是不够精确的。而且t1的大头其实是在Load dylibs阶段。目前只能通过xcode配置，在控制台打印的方式来统计。 </p>
+<p>t2 = main函数执行之后到 AppDelegate 类中的applicationDidFinishLaunching:withOptions:方法执行结束前这段时间</p>
+<h4 id="页面响应时间"><a href="#页面响应时间" class="headerlink" title="页面响应时间"></a>页面响应时间</h4><p>hook ViewController的生命周期</p>
+<h4 id="崩溃率"><a href="#崩溃率" class="headerlink" title="崩溃率"></a>崩溃率</h4><h4 id="Abort率"><a href="#Abort率" class="headerlink" title="Abort率"></a>Abort率</h4><p>目前对于内存过高被杀死的情况是没有办法直接统计的，一般通过排除法来做百分比的统计，原理如下</p>
+<ul>
+<li>程序启动，设置标志位</li>
+<li>程序正常退出，清楚标志</li>
+<li>程序Crash，清楚标志</li>
+<li>程序电量过低导致关机，这个也没办法直接监控，可以加入电量检测来辅助判断</li>
+<li>第二次启动，标志位如果存在，则代表Abort一次，上传后台做统计</li>
+</ul>
+<h4 id="其他性能数据监控：FPS、CPU使用率、内存占用"><a href="#其他性能数据监控：FPS、CPU使用率、内存占用" class="headerlink" title="其他性能数据监控：FPS、CPU使用率、内存占用"></a>其他性能数据监控：FPS、CPU使用率、内存占用</h4>
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Http/" rel="tag"># Http</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/04/20/谈谈ReactiveCocoa-背后的响应式编程/" rel="next" title="谈谈ReactiveCocoa 函数响应式框架">
+                <i class="fa fa-chevron-left"></i> 谈谈ReactiveCocoa 函数响应式框架
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Mochangxing</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#iOS性能监控"><span class="nav-number">1.</span> <span class="nav-text">iOS性能监控</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#背景"><span class="nav-number">1.0.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#APM"><span class="nav-number">1.0.2.</span> <span class="nav-text">APM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现原理"><span class="nav-number">1.0.3.</span> <span class="nav-text">实现原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#卡顿监控方案："><span class="nav-number">1.0.3.1.</span> <span class="nav-text">卡顿监控方案：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#网络监控"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">网络监控</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#冷启动时间"><span class="nav-number">1.0.3.3.</span> <span class="nav-text">冷启动时间</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#页面响应时间"><span class="nav-number">1.0.3.4.</span> <span class="nav-text">页面响应时间</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#崩溃率"><span class="nav-number">1.0.3.5.</span> <span class="nav-text">崩溃率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Abort率"><span class="nav-number">1.0.3.6.</span> <span class="nav-text">Abort率</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#其他性能数据监控：FPS、CPU使用率、内存占用"><span class="nav-number">1.0.3.7.</span> <span class="nav-text">其他性能数据监控：FPS、CPU使用率、内存占用</span></a></li></ol></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mochangxing</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Muse</a> v6.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
