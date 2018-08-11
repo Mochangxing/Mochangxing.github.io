@@ -99,24 +99,28 @@
 
 
 
-  <meta name="description" content="高阶函数提纲： 什么是纯函数（Pure Function）副作用指的是，函数的行为受系统的全局状态所影响 为什么要有纯函数什么是函数式编程什么是副作用（Side Effect），副作用能做什么。什么是函数响应式编程什么Monad以及为什么要引入MonadbindreturnReactiveCocoa是如何实现响应式编程的ReactiveCocoa bind的实现ReactiveCocoa retu">
+  <meta name="description" content="AVPlayer 视频缓存背景目前买家版发布视频动态以及自动播放功能已经上线，视频白名单也已经全量开发。如果直接使用URL通过AVPlayer播放，系统并不会进行缓存，每次播放都必须重新下载。对于用户而言，流量是极大的消耗，播放体验也不够友好。 AVAssetResourceLoaderDelegateAVAssetResourceLoaderDelegate：专门用来处理AVAsset资源加载的">
 <meta property="og:type" content="article">
-<meta property="og:title" content="谈谈ReactiveCocoa 函数响应式框架">
-<meta property="og:url" content="http://yoursite.com/2018/04/20/谈谈ReactiveCocoa-背后的响应式编程/index.html">
+<meta property="og:title" content="AVPlayer 视频缓存">
+<meta property="og:url" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/index.html">
 <meta property="og:site_name" content="Mochangxing">
-<meta property="og:description" content="高阶函数提纲： 什么是纯函数（Pure Function）副作用指的是，函数的行为受系统的全局状态所影响 为什么要有纯函数什么是函数式编程什么是副作用（Side Effect），副作用能做什么。什么是函数响应式编程什么Monad以及为什么要引入MonadbindreturnReactiveCocoa是如何实现响应式编程的ReactiveCocoa bind的实现ReactiveCocoa retu">
+<meta property="og:description" content="AVPlayer 视频缓存背景目前买家版发布视频动态以及自动播放功能已经上线，视频白名单也已经全量开发。如果直接使用URL通过AVPlayer播放，系统并不会进行缓存，每次播放都必须重新下载。对于用户而言，流量是极大的消耗，播放体验也不够友好。 AVAssetResourceLoaderDelegateAVAssetResourceLoaderDelegate：专门用来处理AVAsset资源加载的">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2018-04-24T15:43:08.875Z">
+<meta property="og:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339983849674.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339964925158.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339980448809.jpg">
+<meta property="og:updated_time" content="2018-08-11T14:59:37.070Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="谈谈ReactiveCocoa 函数响应式框架">
-<meta name="twitter:description" content="高阶函数提纲： 什么是纯函数（Pure Function）副作用指的是，函数的行为受系统的全局状态所影响 为什么要有纯函数什么是函数式编程什么是副作用（Side Effect），副作用能做什么。什么是函数响应式编程什么Monad以及为什么要引入MonadbindreturnReactiveCocoa是如何实现响应式编程的ReactiveCocoa bind的实现ReactiveCocoa retu">
+<meta name="twitter:title" content="AVPlayer 视频缓存">
+<meta name="twitter:description" content="AVPlayer 视频缓存背景目前买家版发布视频动态以及自动播放功能已经上线，视频白名单也已经全量开发。如果直接使用URL通过AVPlayer播放，系统并不会进行缓存，每次播放都必须重新下载。对于用户而言，流量是极大的消耗，播放体验也不够友好。 AVAssetResourceLoaderDelegateAVAssetResourceLoaderDelegate：专门用来处理AVAsset资源加载的">
+<meta name="twitter:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339983849674.jpg">
 
 
 
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/04/20/谈谈ReactiveCocoa-背后的响应式编程/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/"/>
 
 
 
@@ -126,7 +130,7 @@
   };
 </script>
 
-  <title>谈谈ReactiveCocoa 函数响应式框架 | Mochangxing</title>
+  <title>AVPlayer 视频缓存 | Mochangxing</title>
   
 
 
@@ -274,7 +278,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/20/谈谈ReactiveCocoa-背后的响应式编程/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Mochangxing">
@@ -291,7 +295,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">谈谈ReactiveCocoa 函数响应式框架
+          <h1 class="post-title" itemprop="name headline">AVPlayer 视频缓存
               
             
           </h1>
@@ -310,7 +314,7 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-20T00:45:24+08:00">2018-04-20</time>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-11T23:01:01+08:00">2018-08-11</time>
             
 
             
@@ -347,20 +351,31 @@
       
 
       
-        <h2 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h2><p>提纲：</p>
-<h2 id="什么是纯函数（Pure-Function）"><a href="#什么是纯函数（Pure-Function）" class="headerlink" title="什么是纯函数（Pure Function）"></a>什么是纯函数（Pure Function）</h2><p><em>副作用</em>指的是，函数的行为受系统的全局状态所影响</p>
-<h2 id="为什么要有纯函数"><a href="#为什么要有纯函数" class="headerlink" title="为什么要有纯函数"></a>为什么要有纯函数</h2><h2 id="什么是函数式编程"><a href="#什么是函数式编程" class="headerlink" title="什么是函数式编程"></a>什么是函数式编程</h2><h2 id="什么是副作用（Side-Effect），副作用能做什么。"><a href="#什么是副作用（Side-Effect），副作用能做什么。" class="headerlink" title="什么是副作用（Side Effect），副作用能做什么。"></a>什么是副作用（Side Effect），副作用能做什么。</h2><h2 id="什么是函数响应式编程"><a href="#什么是函数响应式编程" class="headerlink" title="什么是函数响应式编程"></a>什么是函数响应式编程</h2><h2 id="什么Monad以及为什么要引入Monad"><a href="#什么Monad以及为什么要引入Monad" class="headerlink" title="什么Monad以及为什么要引入Monad"></a>什么Monad以及为什么要引入Monad</h2><h3 id="bind"><a href="#bind" class="headerlink" title="bind"></a>bind</h3><h3 id="return"><a href="#return" class="headerlink" title="return"></a>return</h3><h2 id="ReactiveCocoa是如何实现响应式编程的"><a href="#ReactiveCocoa是如何实现响应式编程的" class="headerlink" title="ReactiveCocoa是如何实现响应式编程的"></a>ReactiveCocoa是如何实现响应式编程的</h2><h3 id="ReactiveCocoa-bind的实现"><a href="#ReactiveCocoa-bind的实现" class="headerlink" title="ReactiveCocoa bind的实现"></a>ReactiveCocoa bind的实现</h3><h3 id="ReactiveCocoa-return的实现"><a href="#ReactiveCocoa-return的实现" class="headerlink" title="ReactiveCocoa return的实现"></a>ReactiveCocoa return的实现</h3><h3 id="ReactiveCocoa封装的一系列操作符"><a href="#ReactiveCocoa封装的一系列操作符" class="headerlink" title="ReactiveCocoa封装的一系列操作符"></a>ReactiveCocoa封装的一系列操作符</h3><p>Functor:任何类别只要能执行<code>fmap</code>操作，就是一个<code>Functor</code><br><code>fmap</code>就是把一个函数应用在一个盒子里的值上，然后返回一个封装在盒子里的新值；</p>
-<p>对于空值也就是<code>Nothing</code>来说，执行<code>fmap</code>操作后返回的还是<code>Nothing</code></p>
-<p>对于<code>List</code>而言，执行<code>fmap</code>，会将函数应用在<code>List</code>的每一个值都上，并返回一个新的<code>List</code></p>
-<p>总结一下：Functor是能将函数应用在值上的一种类型。换句话说，Functor就是支持将一个值映射成另一个新值的类型</p>
-<p>那如果要将一个函数应用在另一个函数上呢？</p>
-<p>也就是说一个函数执行了<code>fmap</code>操作后可以映射成一个新的函数，因此说函数也是<code>Functor</code><br>函数的<code>fmap</code> 操作就是函数的复合</p>
-<p>Functor:<br>将一个普通函数应用到被封装的值上</p>
-<p>Applicative：<br>将一个封装的函数应用在封装的值上</p>
-<p>Monad：<br>将一个“<strong>接收一个普通值并返回一个被封装的值</strong>”的函数应用在一个被封装的值上，这一任务由函数 <code>&gt;&gt;=</code>(读作“bind”)完成。</p>
-<h2 id="ReactiveCocoa是如何实现Monad的"><a href="#ReactiveCocoa是如何实现Monad的" class="headerlink" title="ReactiveCocoa是如何实现Monad的"></a>ReactiveCocoa是如何实现Monad的</h2><p>RACStream被定义为一种Monad类型，定义了两个基本操作<code>bind</code>个<code>return</code></p>
-<p><code>RACStreamBindBlock</code>可以看做是“<strong>接收一个普通值并返回一个被封装的值</strong>”函数</p>
-<h2 id="IO操作："><a href="#IO操作：" class="headerlink" title="IO操作："></a>IO操作：</h2>
+        <h1 id="AVPlayer-视频缓存"><a href="#AVPlayer-视频缓存" class="headerlink" title="AVPlayer 视频缓存"></a>AVPlayer 视频缓存</h1><h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>目前买家版发布视频动态以及自动播放功能已经上线，视频白名单也已经全量开发。如果直接使用URL通过AVPlayer播放，系统并不会进行缓存，每次播放都必须重新下载。对于用户而言，流量是极大的消耗，播放体验也不够友好。</p>
+<h3 id="AVAssetResourceLoaderDelegate"><a href="#AVAssetResourceLoaderDelegate" class="headerlink" title="AVAssetResourceLoaderDelegate"></a>AVAssetResourceLoaderDelegate</h3><p><code>AVAssetResourceLoaderDelegate</code>：专门用来处理AVAsset资源加载的协议。<br>使用方式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">AVURLAsset *urlAsset = ...</span><br><span class="line">[urlAsset.resourceLoader setDelegate:&lt;AVAssetResourceLoaderDelegate&gt; queue:dispatch_get_main_queue()];</span><br></pre></td></tr></table></figure>
+<p>设置了<code>resourceLoader</code>的<code>delegate</code> 后，AVPlayer将把视频资源的下载工作交给<code>AVAssetResourceLoaderDelegate</code>来完成。</p>
+<p><code>AVAssetResourceLoaderDelegate</code> 主要有以下两个方法，分别会在资源开始下载以及取消时被执行：</p>
+<p>是否拦截资源下载请求</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (BOOL)resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;</span><br></pre></td></tr></table></figure>
+<p>取消请求</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- (void)resourceLoader:(AVAssetResourceLoader *)resourceLoader didCancelLoadingRequest:(AVAssetResourceLoadingRequest *)loadingRequest</span><br></pre></td></tr></table></figure>
+<h3 id="AVAssetResourceLoadingRequest-分析"><a href="#AVAssetResourceLoadingRequest-分析" class="headerlink" title="AVAssetResourceLoadingRequest 分析"></a>AVAssetResourceLoadingRequest 分析</h3><p><code>AVAssetResourceLoadingRequest</code>携带了AVPlayer的请求信息，主要有以下几个属性：</p>
+<ul>
+<li><p><code>NSURLRequest *request</code>： 视频的URL相关信息</p>
+</li>
+<li><p><code>AVAssetResourceLoadingContentInformationRequest *contentInformationRequest</code>： 视频文件的信息请求，主要是为了获取视频类型、视频大小等相关信息，该请求会在视频第一个<code>AVAssetResourceLoadingRequest</code>中携带。</p>
+</li>
+<li><code>AVAssetResourceLoadingDataRequest *dataRequest</code>： 视频数据请求，指定了视频请求的数据范围，每次请求完成后，都要通过<code>dataRequest</code>将<code>response</code>塞给AVPlayer</li>
+</ul>
+<h3 id="AVAssetResourceLoaderDelegate-实现视频请求流程图"><a href="#AVAssetResourceLoaderDelegate-实现视频请求流程图" class="headerlink" title="AVAssetResourceLoaderDelegate 实现视频请求流程图"></a><code>AVAssetResourceLoaderDelegate</code> 实现视频请求流程图</h3><p><img src="media/15330529045080/15339983849674.jpg" alt=""></p>
+<h3 id="如何实现视频缓存"><a href="#如何实现视频缓存" class="headerlink" title="如何实现视频缓存"></a>如何实现视频缓存</h3><p><code>AVAssetResourceLoadingRequest</code>视频请求实际上就是Http文件下载过程，需要通过<code>URLSession</code>创建一个<code>DataTask</code>请求数据。通过以上的分析，我们知道视频下载是一个分片下载的过程，因此视频缓存也应该是基于分片的缓存。而因为有了缓存的存在，当<code>AVPlayer</code>发起一个<code>AVAssetResourceLoadingRequest</code>请求了，就有可能一部分数据命中缓存，而一部分则没有。这时候我们就需要就<code>AVAssetResourceLoadingRequest</code>请求拆分成本地请求与远端请求了，拆分请求需要根据已缓存的数据来进行，因此需要一个缓存配置模块来存储，已缓存视频的信息。如下图所示：</p>
+<p><img src="media/15330529045080/15339964925158.jpg" alt=""></p>
+<h4 id="内存缓存还是磁盘缓存？"><a href="#内存缓存还是磁盘缓存？" class="headerlink" title="内存缓存还是磁盘缓存？"></a>内存缓存还是磁盘缓存？</h4><p>视频文件一般都比较大，如果采用内存缓存会对内存造成很大的压力，因此采用磁盘缓存，虽然磁盘缓存的读取速度要比内存慢，但对于视频来说其实可以忽略不计了。</p>
+<h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>同一个url的视频缓存在同一个文件中，为了避免多线程同步的问题，因此同一时间同一个视频url不能存在多个下载请求</p>
+<h4 id="整体架构设计"><a href="#整体架构设计" class="headerlink" title="整体架构设计"></a>整体架构设计</h4><p><img src="media/15330529045080/15339980448809.jpg" alt=""></p>
+<h3 id="缓存策略"><a href="#缓存策略" class="headerlink" title="缓存策略"></a>缓存策略</h3><p>既然是缓存，那么缓存策略就是必不可少的了。这里视频缓存参考了SDWebImage的缓存方案，采用了LRU缓存。主要通过过期时间与最大缓存空间两个维度来清理缓存。</p>
+
       
     </div>
 
@@ -387,8 +402,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/04/17/ReactCocoa-内存管理/" rel="next" title="ReactiveCoCoa 内存管理">
-                <i class="fa fa-chevron-left"></i> ReactiveCoCoa 内存管理
+              <a href="/2018/07/02/iOS性能监控/" rel="next" title="iOS性能监控">
+                <i class="fa fa-chevron-left"></i> iOS性能监控
               </a>
             
           </div>
@@ -396,10 +411,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2018/07/02/iOS性能监控/" rel="prev" title="iOS性能监控">
-                iOS性能监控 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -532,7 +543,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#高阶函数"><span class="nav-number">1.</span> <span class="nav-text">高阶函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是纯函数（Pure-Function）"><span class="nav-number">2.</span> <span class="nav-text">什么是纯函数（Pure Function）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么要有纯函数"><span class="nav-number">3.</span> <span class="nav-text">为什么要有纯函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是函数式编程"><span class="nav-number">4.</span> <span class="nav-text">什么是函数式编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是副作用（Side-Effect），副作用能做什么。"><span class="nav-number">5.</span> <span class="nav-text">什么是副作用（Side Effect），副作用能做什么。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是函数响应式编程"><span class="nav-number">6.</span> <span class="nav-text">什么是函数响应式编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么Monad以及为什么要引入Monad"><span class="nav-number">7.</span> <span class="nav-text">什么Monad以及为什么要引入Monad</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bind"><span class="nav-number">7.1.</span> <span class="nav-text">bind</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#return"><span class="nav-number">7.2.</span> <span class="nav-text">return</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReactiveCocoa是如何实现响应式编程的"><span class="nav-number">8.</span> <span class="nav-text">ReactiveCocoa是如何实现响应式编程的</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ReactiveCocoa-bind的实现"><span class="nav-number">8.1.</span> <span class="nav-text">ReactiveCocoa bind的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReactiveCocoa-return的实现"><span class="nav-number">8.2.</span> <span class="nav-text">ReactiveCocoa return的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReactiveCocoa封装的一系列操作符"><span class="nav-number">8.3.</span> <span class="nav-text">ReactiveCocoa封装的一系列操作符</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ReactiveCocoa是如何实现Monad的"><span class="nav-number">9.</span> <span class="nav-text">ReactiveCocoa是如何实现Monad的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO操作："><span class="nav-number">10.</span> <span class="nav-text">IO操作：</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#AVPlayer-视频缓存"><span class="nav-number">1.</span> <span class="nav-text">AVPlayer 视频缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#背景"><span class="nav-number">1.0.1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AVAssetResourceLoaderDelegate"><span class="nav-number">1.0.2.</span> <span class="nav-text">AVAssetResourceLoaderDelegate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AVAssetResourceLoadingRequest-分析"><span class="nav-number">1.0.3.</span> <span class="nav-text">AVAssetResourceLoadingRequest 分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AVAssetResourceLoaderDelegate-实现视频请求流程图"><span class="nav-number">1.0.4.</span> <span class="nav-text">AVAssetResourceLoaderDelegate 实现视频请求流程图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何实现视频缓存"><span class="nav-number">1.0.5.</span> <span class="nav-text">如何实现视频缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内存缓存还是磁盘缓存？"><span class="nav-number">1.0.5.1.</span> <span class="nav-text">内存缓存还是磁盘缓存？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#其他"><span class="nav-number">1.0.5.2.</span> <span class="nav-text">其他</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#整体架构设计"><span class="nav-number">1.0.5.3.</span> <span class="nav-text">整体架构设计</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缓存策略"><span class="nav-number">1.0.6.</span> <span class="nav-text">缓存策略</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
