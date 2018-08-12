@@ -106,14 +106,14 @@
 <meta property="og:site_name" content="Mochangxing">
 <meta property="og:description" content="AVPlayer 视频缓存背景目前买家版发布视频动态以及自动播放功能已经上线，视频白名单也已经全量开发。如果直接使用URL通过AVPlayer播放，系统并不会进行缓存，每次播放都必须重新下载。对于用户而言，流量是极大的消耗，播放体验也不够友好。 AVAssetResourceLoaderDelegateAVAssetResourceLoaderDelegate：专门用来处理AVAsset资源加载的">
 <meta property="og:locale" content="default">
-<meta property="og:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339983849674.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339964925158.jpg">
-<meta property="og:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339980448809.jpg">
-<meta property="og:updated_time" content="2018-08-11T14:59:37.070Z">
+<meta property="og:image" content="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339804735570.jpg?raw=true">
+<meta property="og:image" content="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339964925158.jpg?raw=true">
+<meta property="og:image" content="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339980448809.jpg?raw=true">
+<meta property="og:updated_time" content="2018-08-12T12:30:50.801Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AVPlayer 视频缓存">
 <meta name="twitter:description" content="AVPlayer 视频缓存背景目前买家版发布视频动态以及自动播放功能已经上线，视频白名单也已经全量开发。如果直接使用URL通过AVPlayer播放，系统并不会进行缓存，每次播放都必须重新下载。对于用户而言，流量是极大的消耗，播放体验也不够友好。 AVAssetResourceLoaderDelegateAVAssetResourceLoaderDelegate：专门用来处理AVAsset资源加载的">
-<meta name="twitter:image" content="http://yoursite.com/2018/08/11/AVPlayer缓存的实现/media/15330529045080/15339983849674.jpg">
+<meta name="twitter:image" content="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339804735570.jpg?raw=true">
 
 
 
@@ -368,12 +368,12 @@
 </li>
 <li><code>AVAssetResourceLoadingDataRequest *dataRequest</code>： 视频数据请求，指定了视频请求的数据范围，每次请求完成后，都要通过<code>dataRequest</code>将<code>response</code>塞给AVPlayer</li>
 </ul>
-<h3 id="AVAssetResourceLoaderDelegate-实现视频请求流程图"><a href="#AVAssetResourceLoaderDelegate-实现视频请求流程图" class="headerlink" title="AVAssetResourceLoaderDelegate 实现视频请求流程图"></a><code>AVAssetResourceLoaderDelegate</code> 实现视频请求流程图</h3><p><img src="media/15330529045080/15339983849674.jpg" alt=""></p>
+<h3 id="AVAssetResourceLoaderDelegate-实现视频请求流程图"><a href="#AVAssetResourceLoaderDelegate-实现视频请求流程图" class="headerlink" title="AVAssetResourceLoaderDelegate 实现视频请求流程图"></a><code>AVAssetResourceLoaderDelegate</code> 实现视频请求流程图</h3><p><img src="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339804735570.jpg?raw=true" alt=""></p>
 <h3 id="如何实现视频缓存"><a href="#如何实现视频缓存" class="headerlink" title="如何实现视频缓存"></a>如何实现视频缓存</h3><p><code>AVAssetResourceLoadingRequest</code>视频请求实际上就是Http文件下载过程，需要通过<code>URLSession</code>创建一个<code>DataTask</code>请求数据。通过以上的分析，我们知道视频下载是一个分片下载的过程，因此视频缓存也应该是基于分片的缓存。而因为有了缓存的存在，当<code>AVPlayer</code>发起一个<code>AVAssetResourceLoadingRequest</code>请求了，就有可能一部分数据命中缓存，而一部分则没有。这时候我们就需要就<code>AVAssetResourceLoadingRequest</code>请求拆分成本地请求与远端请求了，拆分请求需要根据已缓存的数据来进行，因此需要一个缓存配置模块来存储，已缓存视频的信息。如下图所示：</p>
-<p><img src="media/15330529045080/15339964925158.jpg" alt=""></p>
+<p><img src="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339964925158.jpg?raw=true" alt=""></p>
 <h4 id="内存缓存还是磁盘缓存？"><a href="#内存缓存还是磁盘缓存？" class="headerlink" title="内存缓存还是磁盘缓存？"></a>内存缓存还是磁盘缓存？</h4><p>视频文件一般都比较大，如果采用内存缓存会对内存造成很大的压力，因此采用磁盘缓存，虽然磁盘缓存的读取速度要比内存慢，但对于视频来说其实可以忽略不计了。</p>
 <h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>同一个url的视频缓存在同一个文件中，为了避免多线程同步的问题，因此同一时间同一个视频url不能存在多个下载请求</p>
-<h4 id="整体架构设计"><a href="#整体架构设计" class="headerlink" title="整体架构设计"></a>整体架构设计</h4><p><img src="media/15330529045080/15339980448809.jpg" alt=""></p>
+<h4 id="整体架构设计"><a href="#整体架构设计" class="headerlink" title="整体架构设计"></a>整体架构设计</h4><p><img src="https://github.com/Mochangxing/blogImages/blob/master/media/15330529045080/15339980448809.jpg?raw=true" alt=""></p>
 <h3 id="缓存策略"><a href="#缓存策略" class="headerlink" title="缓存策略"></a>缓存策略</h3><p>既然是缓存，那么缓存策略就是必不可少的了。这里视频缓存参考了SDWebImage的缓存方案，采用了LRU缓存。主要通过过期时间与最大缓存空间两个维度来清理缓存。</p>
 
       
