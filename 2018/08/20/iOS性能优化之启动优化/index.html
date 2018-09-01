@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.1.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.1.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.1.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.1.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.1.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。 App启动流程main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time Pre-main time下图是Apple在WWDC上展示pre">
+<meta name="keywords" content="性能优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS性能优化之启动优化">
+<meta property="og:url" content="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/index.html">
+<meta property="og:site_name" content="Mochangxing">
+<meta property="og:description" content="这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。 App启动流程main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time Pre-main time下图是Apple在WWDC上展示pre">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/media/15354675150632/15355095088116.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/media/15354675150632/15355540940666.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/media/15354675150632/15357240745282.jpg">
+<meta property="og:updated_time" content="2018-09-01T02:54:06.399Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS性能优化之启动优化">
+<meta name="twitter:description" content="这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。 App启动流程main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time Pre-main time下图是Apple在WWDC上展示pre">
+<meta name="twitter:image" content="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/media/15354675150632/15355095088116.jpg">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>iOS性能优化之启动优化 | Mochangxing</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="default">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Mochangxing</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />Home</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />Archives</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">iOS性能优化之启动优化
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-20T10:45:24+08:00">2018-08-20</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。</p>
+<h3 id="App启动流程"><a href="#App启动流程" class="headerlink" title="App启动流程"></a>App启动流程</h3><p>main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time<br><img src="media/15354675150632/15355095088116.jpg" alt=""></p>
+<h4 id="Pre-main-time"><a href="#Pre-main-time" class="headerlink" title="Pre-main time"></a>Pre-main time</h4><p>下图是Apple在WWDC上展示pre-main 阶段的流程图。</p>
+<p><img src="media/15354675150632/15355540940666.jpg" alt=""></p>
+<ol>
+<li><p>Load dylibs</p>
+<p>加载动态库，系统首先会可执行文件，然后加载动态链接库dyld，dyld是一个用来专门加载动态链接库的库（😂）。加载完dyld，dyld从可执行文件的依赖开始，递归的加载所有依赖的动态链接库。</p>
+</li>
+<li><p>Rebase &amp; Bind</p>
+<p>由于ASLR(address space layout randomization)的存在，可执行文件和动态链接库在虚拟内存中的加载地址每次启动都不固定，所以需要这两步来修正。Rebase就是用来修正动态库内部指针的指向。而动态库之间存在依赖关系，在刚加载完所有动态库后，它们之间还是相互独立的状态。Bind就是将动态库内部符号表指向与所依赖的动态库的资源</p>
+</li>
+<li><p>Objc</p>
+<p>这一步开始进入Objc阶段，启动Runtime。这一步的主要工作有：注册Objc类，把category的定义插入方法列表，确保每一个selector的唯一</p>
+</li>
+<li><p>Initializers</p>
+<p>这一步的工作主要有：Objc的+load()函数、C++的构造函数属性函数 形如attribute((constructor)) void DoSomeInitializationWork()、非基本类型的C++静态全局变量的创建(通常是类或结构体)(non-trivial initializer) 比如一个全局静态结构体的构建，如果在构造函数中有繁重的工作，那么会拖慢启动速度     </p>
+</li>
+</ol>
+<ul>
+<li>动态库的load方法早于主二进制的所有load方法被调用</li>
+</ul>
+<h4 id="post-main-time"><a href="#post-main-time" class="headerlink" title="post-main time"></a>post-main time</h4><p>post-main time的统计口径：从进入main函数开始，到willFinishLaunch结束。大多数App都会在这个阶段完成相关SDK的初始化工作。</p>
+<h3 id="如何精确测量App启动速度"><a href="#如何精确测量App启动速度" class="headerlink" title="如何精确测量App启动速度"></a>如何精确测量App启动速度</h3><h4 id="Xcode-测量-pre-main-耗时"><a href="#Xcode-测量-pre-main-耗时" class="headerlink" title="Xcode 测量 pre-main 耗时"></a>Xcode 测量 pre-main 耗时</h4><p>Xcode 提供了一个很赞的方法，只需要在 Edit scheme -&gt; Run -&gt; Arguments 中将环境变量 DYLD_PRINT_STATISTICS 设为 1，就可以看到 main 之前各个阶段的时间消耗。</p>
+<pre><code>Total pre-main time: 2.1 seconds (100.0%)
+         dylib loading time: 106.81 milliseconds (4.9%)
+        rebase/binding time: 192.29 milliseconds (8.9%)
+            ObjC setup time: 855.42 milliseconds (39.7%)
+           initializer time: 995.53 milliseconds (46.2%)
+           slowest intializers :
+             libSystem.B.dylib :  29.33 milliseconds (1.3%)
+    libMainThreadChecker.dylib : 101.49 milliseconds (4.7%)
+          libglInterpose.dylib : 297.92 milliseconds (13.8%)
+         libMTLInterpose.dylib :  60.73 milliseconds (2.8%)
+                       ModelIO :  69.89 milliseconds (3.2%)
+              MediaLibraryCore :  44.31 milliseconds (2.0%)
+                   WDBuyerUniv : 363.40 milliseconds (16.9%)
+
+</code></pre><p>以上为买家版的pre-main阶段的详细耗时，可以看到大头是在ObjC setup和initializer阶段</p>
+<h4 id="如何统计线上-pre-main-时间"><a href="#如何统计线上-pre-main-时间" class="headerlink" title="如何统计线上 pre-main 时间"></a>如何统计线上 pre-main 时间</h4><h5 id="统计全部load方法的耗时"><a href="#统计全部load方法的耗时" class="headerlink" title="统计全部load方法的耗时"></a>统计全部load方法的耗时</h5><p>dyld会优先初始化动态库，然后初始化App的可执行文件。只要在最早加载的动态库中Hook App中全部的load函数，然后打点统计就可以了。那么问题就变成了如何找到最早加载的动态库？</p>
+<p>动态库的 load 顺序是与 Load Commands 顺序和依赖关系息息相关的。如图所示：</p>
+<p><img src="media/15354675150632/15357240745282.jpg" alt=""></p>
+<h5 id="如何调整Load-Command-顺序-让自定义的动态库率先被加载"><a href="#如何调整Load-Command-顺序-让自定义的动态库率先被加载" class="headerlink" title="如何调整Load Command 顺序, 让自定义的动态库率先被加载?"></a>如何调整Load Command 顺序, 让自定义的动态库率先被加载?</h5><p>思路1：Mach-O 本质是还是一个文件，想要让上图中的AAAAAHookLoad被第一个加载，那么只要把Load Command 与第一个动态库的Load Command 替换即可。该方案需要对Mach-O的文件格式有足够的了解</p>
+<p>思路2：编译过程，指定Load Command的顺序。按理说，Mach-O中Load Command的顺序应该是按照一定的规则写入的。只要能找到修改响应规则的方法，应该比思路1容易得多。目前还没找到（😂）</p>
+<p>自定义动态库，已Embed framework的方式加入App工程 -&gt; 自定义的某个class load 方法中 hook 全部类的load方法 -&gt; hook方法中统计load方法耗时 -&gt; 输出</p>
+<p><strong>注意事项：</strong></p>
+<p><strong>1. 不能为了统计性能，自己却造成了性能问题，获取所有的类并且 Hook load 函数还是比较耗时的，控制不好反而增加了启动时间</strong></p>
+<p><strong>2. 不当某个class 与其 category 同时实现了 load方法时，只能hook category 中的方法，需要考虑如何同时hook。</strong></p>
+<h5 id="度量-C-Static-Initializers"><a href="#度量-C-Static-Initializers" class="headerlink" title="度量 C++ Static Initializers"></a>度量 C++ Static Initializers</h5><p>Runtime 会从 mod_init_func 这个 section 中读取所有的函数指针，然后执行函数调用，这些函数指针对应的正是 C++ Static Initializers 和 <strong>attribute</strong>((constructor))修饰的函数。</p>
+<p>因为它们的执行顺序在 load 函数之后，所以可以在 load 函数中把 mod_init_func 中的地址都替换成我们的 hook 函数指针，然后再把原函数指针保存到一个全局数据中，当执行我们的 hook 函数时，从全局数组中取出原函数地址执行。</p>
+<p>在这里张贴下主要代码，更多可以参考这个链接：<a href="https://github.com/everettjf/Yolo/blob/master/HookCppInitilizers/hook_cpp_init.mm" target="_blank" rel="noopener">https://github.com/everettjf/Yolo/blob/master/HookCppInitilizers/hook_cpp_init.mm</a></p>
+<h3 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h3><h4 id="pre-main-阶段优化"><a href="#pre-main-阶段优化" class="headerlink" title="pre-main 阶段优化"></a>pre-main 阶段优化</h4><ol>
+<li><p>Load dylibs 阶段</p>
+<ul>
+<li>这一阶段，优化点主要在减少不必要的动态库，因为动态链接比较耗时，</li>
+<li>另外一点就是，尽可能把多个动态库合并成一个。系统的动态库有共享缓存等优化方案，但是我们的动态库变多了的话会非常耗时，所以合并动态库是一个有效且可行的方案</li>
+<li>也可以尝试对一些非启动阶段所必须的动态库，延时加载（仅想法，未验证）。</li>
+</ul>
+</li>
+<li><p>Rebase &amp; Bind     </p>
+<ul>
+<li>对于Objc，减少class，selector和category这些元数据的数量。</li>
+<li>对于C++，减少虚方法，因为虚方法会创建vtable。</li>
+</ul>
+</li>
+<li><p>Initializers</p>
+<ul>
+<li>减少load方法的耗时，尽量将load方法的工作移到initialize。</li>
+<li>不要使用 <strong>atribute</strong>((constructor)) 将方法显式标记为初始化器，而是让初始化方法调用时才执行。比如使用 dispatch_once(),pthread_once() 或 std::once()。也就是在第一次使用时才初始化，推迟了一部分工作耗时。</li>
+</ul>
+</li>
+</ol>
+<h4 id="main-阶段优化"><a href="#main-阶段优化" class="headerlink" title="main 阶段优化"></a>main 阶段优化</h4><p>启动任务分层，不需要及时初始化，不需要在主线程初始化的，都选择异步延时加载。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.jianshu.com/p/c14987eee107" target="_blank" rel="noopener">如何精确度量 iOS App 的启动时间</a></p>
+<p><a href="http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/" target="_blank" rel="noopener">优化 App 的启动时间</a></p>
+<p><a href="https://techblog.toutiao.com/2017/01/17/iosspeed/" target="_blank" rel="noopener">今日头条iOS客户端启动速度优化</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/性能优化/" rel="tag"># 性能优化</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/11/AVPlayer缓存的实现/" rel="next" title="AVPlayer 视频缓存">
+                <i class="fa fa-chevron-left"></i> AVPlayer 视频缓存
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/26/RAC rac_signalForSelector 如何实现对象方法的hook/" rel="prev" title="RAC rac_signalForSelector 如何实现对象方法的hook">
+                RAC rac_signalForSelector 如何实现对象方法的hook <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Mochangxing</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">15</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#App启动流程"><span class="nav-number">1.</span> <span class="nav-text">App启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Pre-main-time"><span class="nav-number">1.1.</span> <span class="nav-text">Pre-main time</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#post-main-time"><span class="nav-number">1.2.</span> <span class="nav-text">post-main time</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何精确测量App启动速度"><span class="nav-number">2.</span> <span class="nav-text">如何精确测量App启动速度</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Xcode-测量-pre-main-耗时"><span class="nav-number">2.1.</span> <span class="nav-text">Xcode 测量 pre-main 耗时</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何统计线上-pre-main-时间"><span class="nav-number">2.2.</span> <span class="nav-text">如何统计线上 pre-main 时间</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#统计全部load方法的耗时"><span class="nav-number">2.2.1.</span> <span class="nav-text">统计全部load方法的耗时</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#如何调整Load-Command-顺序-让自定义的动态库率先被加载"><span class="nav-number">2.2.2.</span> <span class="nav-text">如何调整Load Command 顺序, 让自定义的动态库率先被加载?</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#度量-C-Static-Initializers"><span class="nav-number">2.2.3.</span> <span class="nav-text">度量 C++ Static Initializers</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优化"><span class="nav-number">3.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#pre-main-阶段优化"><span class="nav-number">3.1.</span> <span class="nav-text">pre-main 阶段优化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#main-阶段优化"><span class="nav-number">3.2.</span> <span class="nav-text">main 阶段优化</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文章"><span class="nav-number">4.</span> <span class="nav-text">参考文章</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mochangxing</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Muse</a> v6.1.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.1.0"></script>
+
+
+
+  
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

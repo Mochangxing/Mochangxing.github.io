@@ -271,6 +271,213 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/27/iOS性能优化之帧率优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/27/iOS性能优化之帧率优化/" itemprop="url">
+                  iOS性能优化之帧率优化
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-27T20:45:24+08:00">2018-08-27</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="影响帧率的原因"><a href="#影响帧率的原因" class="headerlink" title="影响帧率的原因"></a>影响帧率的原因</h3><h4 id="屏幕显示图像的原理："><a href="#屏幕显示图像的原理：" class="headerlink" title="屏幕显示图像的原理："></a><strong>屏幕显示图像的原理</strong>：</h4><p><img src="media/15352705850650/15352757694905.png" alt=""></p>
+<p>一般而言，计算机系统中CPU、GPU以及显示器以以上这种方式协同工作。CPU计算好需要会显示的内容提交给GPU，GPU渲染完成后将渲染结果存入缓存区，随后视频控制器根据VSync信号，将缓冲区的内容显示到显示器上。</p>
+<p>在这个过程中，<strong>CPU的主要职责是计算</strong>，<strong>GPU的主要职责是渲染</strong></p>
+<h4 id="影响帧率的原因-1"><a href="#影响帧率的原因-1" class="headerlink" title="影响帧率的原因"></a><strong>影响帧率的原因</strong></h4><ul>
+<li><p>CPU的资源消耗原因</p>
+<ol>
+<li><p>对象的创建</p>
+<p>对象的创建会分配内存、调整属性、甚至还有读取文件等操作，比较消耗资源。尽量用轻量级的对象代替重量对象，可以对内存有所优化。比如CALayer比UIView要轻量很多，因为不需要相应触摸事件。如果对象不涉及UI操作尽量放到后台线程去创建。，另外通过Storyboard创建视图对象时，要比直接通过代码创建对象消耗非常多的资源。</p>
+</li>
+</ol>
+</li>
+</ul>
+<pre><code>2. 对象的调整
+
+   对象的调整也是消耗CPU资源的原因之一。特别指出：CALayer内部并没有属性，当调用属性方法时，它内部是通过Runtime的resolveInstanceMethod为对象临时添加一个方法，并把对应属性值保存在内部的一个Dictionary中，同时还会通知delegate、创建动画等等，非常消耗资源，UIView关于显示相关属性的调整实际上都是对CALayer属性的调整。 
+
+3. 对象的销毁
+
+    对象销毁虽然对资源的消耗不多，但是积累起来也不容忽视。通常容器类持有大量对象时，其销毁时资源的消耗就非常明显。如果对象能放到后台释放，那就放到后台释放。为了避免编译器警告，把对象捕获到Block，再扔到后台队列随便发送个消息就OK。
+
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SArray *tmp = self.array;</span><br><span class="line">self.array = nil;</span><br><span class="line">dispatch_async(queue, ^&#123;</span><br><span class="line">    [tmp class];</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+
+4. 布局计算
+
+    布局计算是App种最为常见的资源消耗的地方，如果能在后台提前计算好布局、并对布局进行缓存，那么就不会产生性能问题了。还有要尽量避免多次频繁的计算UIView.frame/bounds/center 等属性。因为调整这些属性非常消耗性能。
+
+5. 文本计算
+
+    如果一个页面中包含大量文本，文本的宽高会占用很大一部分资源。可以使用[NSAttributedString boundingRectWithSize:options:context:] 来计算文本宽高，用 -[NSAttributedString drawWithRect:options:context:] 来绘制文本。尽管这两个方法性能不错，但仍旧需要放到后台线程进行以避免阻塞主线程。
+
+6. 文本渲染
+
+    常见的文本控件（UILabel、UITextView等）、其排版和绘制都是在主线程进行的，当文本数量很大时，CPU压力非常大。对此的解决方案是，自定义文本控件，用TextKit或者CoreText对文本异步绘制。可以参考YYTextKit。
+7. 图片的解码
+
+    UIImage或者CGImageSource创建的图片，并不会立刻解码。当图片设置到UIImageView或者CALayer.contents中，且CALayer被提交到CPU前，CGImage才会被解码，这一步发生在主线程。想要绕开这个机制，常见的做法是在后台线程将图片绘制到CGBitmapContext中，然后冲Bitmap中直接创建图片。目前常见的图片库都带有这个功能。    
+
+
+8. 图像的绘制
+
+    图像的绘制通常是指用那些以 CG 开头的方法把图像绘制到画布中，然后从画布创建图片并显示这样一个过程。这个最常见的地方就是 [UIView drawRect:] 里面了。由于 CoreGraphic 方法通常都是线程安全的，所以图像的绘制可以很容易的放到后台线程进行。大致过程如下：
+
+
+    <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">- (void)display &#123;</span><br><span class="line">    dispatch_async(backgroundQueue, ^&#123;</span><br><span class="line">         CGContextRef ctx = CGBitmapContextCreate(...);</span><br><span class="line">        // draw in context...</span><br><span class="line">         CGImageRef img = CGBitmapContextCreateImage(ctx);</span><br><span class="line">         CFRelease(ctx);</span><br><span class="line">         dispatch_async(mainQueue, ^&#123;</span><br><span class="line">            layer.contents = img;</span><br><span class="line">         &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</code></pre><ul>
+<li><p>GPU的资源消耗</p>
+<ol>
+<li><p>纹理的渲染</p>
+<p> 所有的bitmap，包括图片、文本、栅格化的内容，最终都是有内存提交到显存，绑定为GPU Texture。不论是提交显存的过程，还是GPU调整和渲染Texture的过程都要消耗不少GPU资源。 短时间内显示大量图片时（比如UITableView 存在大量图片并快速滑动时），CPU占用了率很低，GPU却非常高，界面仍然会掉帧。针对这种情况只能将减少短时间显示大量图片，尽可能将多张图片合成一张进行显示。<br> 另外当图片过大，超过GPU的最大纹理尺寸时，需要先交由CPU进行预处理。这对CPU个GPU都会带来额外的消耗。</p>
+</li>
+</ol>
+</li>
+</ul>
+<pre><code>2. 视图的混合
+
+    当多个视图重叠在一起显示时，GPU首先会把它们混合到一起，再进行渲染。如果视图结构过于复杂，混合过程也会消耗很多GPU资源。最好的办法是，尽量减少视图层级和数量，并在不透明的视图里标明opaque属性以避免无用的Alpha通道合成
+
+
+3. 图形的生成
+
+    离屏渲染，CALayer的 border、圆角、阴影、遮罩，CASharpLayer的矢量图显示，通常会触发离屏渲染。而离屏渲染通常发生在GPU中。开启 CALayer.shouldRasterize属性会使视图渲染内容被缓存起来，下次绘制的时候可以直接显示缓存。而最彻底的解决办法是：把需要显示的图型在后台线程绘制为图片，避免使用圆角、阴影遮罩等属性。
+</code></pre><h3 id="如何发现被定位卡顿问题"><a href="#如何发现被定位卡顿问题" class="headerlink" title="如何发现被定位卡顿问题"></a>如何发现被定位卡顿问题</h3><p>在了解了影响帧率的原因以及解决办法后，我们可以在开发过程中应该提高警惕，尽量避免写影响性能的代码。但是当我们接手一个新的业务模块时，应该如何发现卡顿问题并定位呢？</p>
+<h4 id="卡顿检测工具"><a href="#卡顿检测工具" class="headerlink" title="卡顿检测工具"></a>卡顿检测工具</h4><p>目前业界比较通用的卡顿检测方案是：FPS检测 + 主线程RunLoop检测</p>
+<p><img src="media/15352705850650/15352854818625.jpg" alt=""></p>
+<p>其主要原理是，开辟一个子线程检测主线程RunLoop，检测kCFRunLoopBeforeSources与kCFRunLoopAfterWaiting这两个状态间的耗时，并综合FPS指标的来检测卡顿。</p>
+<p>监听主线程RunLoop：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">- (void)start</span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">    // 创建信号 用于阻塞子线程</span><br><span class="line">    semaphore = dispatch_semaphore_create(0);</span><br><span class="line">    </span><br><span class="line">    // 注册RunLoop状态观察</span><br><span class="line">    CFRunLoopObserverContext context = &#123;0,(__bridge void*)self,NULL,NULL&#125;;</span><br><span class="line">    observer = CFRunLoopObserverCreate(kCFAllocatorDefault,</span><br><span class="line">                                       kCFRunLoopAllActivities,</span><br><span class="line">                                       YES,</span><br><span class="line">                                       0,</span><br><span class="line">                                       &amp;runLoopObserverCallBack,</span><br><span class="line">                                       &amp;context);</span><br><span class="line">    CFRunLoopAddObserver(CFRunLoopGetMain(), observer, kCFRunLoopCommonModes);</span><br><span class="line"></span><br><span class="line">    // 开启子线程监控</span><br><span class="line">    dispatch_async(dispatch_get_global_queue(0, 0), ^&#123;</span><br><span class="line">        while (YES)</span><br><span class="line">        &#123;</span><br><span class="line">            long st = dispatch_semaphore_wait(semaphore, dispatch_time(DISPATCH_TIME_NOW, 16*NSEC_PER_MSEC));</span><br><span class="line">            if (st != 0)</span><br><span class="line">            &#123;</span><br><span class="line">               //主线程超时，综合FPS判断是佛卡顿，并dump堆栈信息 </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>FPS 检测基于DisplayLink计算帧率。<br>卡顿堆栈信息获取，这里就不展开了，可以参考这篇文章<a href="https://blog.csdn.net/abc649395594/article/details/52350426" target="_blank" rel="noopener">获取任意线程调用栈的那些事</a>，分析的很详细</p>
+<h3 id="买家版帧率优化实践"><a href="#买家版帧率优化实践" class="headerlink" title="买家版帧率优化实践"></a>买家版帧率优化实践</h3><p>买家版feed流中最为常见的卡片，包含了大量的图片以及文字，卡片视图数量很多，层级也很复杂。大量图片以及文本的绘制可以说是影响帧率的最大因素。因此初步的优化方案是，引入ASDisplayKit异步渲染框架，替换文本控件和图片控件。ASDisplayKit的核心思想是将所有能异步执行的操作如：文本和布局的计算、渲染、图片的解码、绘制等通通从主线程移到子线程。</p>
+<p>在引入ASDisplayKit后，页面帧率有所提升，但卡顿情况仍较为严重。而页面的卡片类型多大七八种，而每个卡片的实现代码少则大大几百行，多则一千多行。如果单纯代码Review查找性能瓶颈的代码，是一件相当低效的事情，因此引入了卡顿检测工具。引入卡顿检测工具后，发现：虽然使用了FDTemplateLayoutCell缓存了Cell高度避免重复计算，但是卡片所有文本宽高计算，并且没有缓冲，每次视图进入屏幕时都需要重新计算，而文本宽高的计算恰恰又是影响性能重要原因之一。</p>
+<p>AutoLayout也是影响性能的一个因素，买家版的卡片也大量使用了AutoLayout，如果将卡片的布局移到异步线程，那么性能还会有所提升。</p>
+<p>综上，买家版的性能瓶颈主要在于：文本宽高的计算、大量文本的绘制、大量图片的解码绘制以及AutoLayout带来的性能影响。</p>
+<p>卡顿检测发现的其他问题：1. 主线程读取缓存并反序列化；2. VDTrick 遍历UIController.view 的所有子view；3. 网络请求回调时，主线程进行耗时的卡片高度计算操作。3.API的使用不当</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/26/RAC rac_signalForSelector 如何实现对象方法的hook/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -399,6 +606,213 @@
 <h3 id="深度改造Runtime的弊端"><a href="#深度改造Runtime的弊端" class="headerlink" title="深度改造Runtime的弊端"></a>深度改造Runtime的弊端</h3><p>RAC 通过深度改造对象的消息机制以达到AOP的目的，对于日常开发来说相当便利。不过值得注意的是：<strong>当一个项目内存在多个库深度改造对象的消息机制，就会产生不可避免的冲突</strong>，比如<code>ASpect</code>这个库，它的实现原理有RAC完全一样，应该都是借鉴了KVO的实现方式，唯一的不同点在于<code>ASpect</code>的消息<code>forwardInvocation:</code>实现比RAC稍微多了一步：当对象无法响应selector时，会调用 <code>doesNotRecognizeSelector:</code> 抛出异常。</p>
 <p><strong>若同时使用这两个库对同一对象的同一方法Hook，那么该方法将无法被执行，并存在Crash隐患。</strong></p>
 <p>经过以上的研究，对Runtime有了更深入的了解。</p>
+
+          
+        
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/20/iOS性能优化之启动优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mochangxing">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Mochangxing">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/20/iOS性能优化之启动优化/" itemprop="url">
+                  iOS性能优化之启动优化
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+                
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-20T10:45:24+08:00">2018-08-20</time>
+            
+
+            
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。</p>
+<h3 id="App启动流程"><a href="#App启动流程" class="headerlink" title="App启动流程"></a>App启动流程</h3><p>main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time<br><img src="media/15354675150632/15355095088116.jpg" alt=""></p>
+<h4 id="Pre-main-time"><a href="#Pre-main-time" class="headerlink" title="Pre-main time"></a>Pre-main time</h4><p>下图是Apple在WWDC上展示pre-main 阶段的流程图。</p>
+<p><img src="media/15354675150632/15355540940666.jpg" alt=""></p>
+<ol>
+<li><p>Load dylibs</p>
+<p>加载动态库，系统首先会可执行文件，然后加载动态链接库dyld，dyld是一个用来专门加载动态链接库的库（😂）。加载完dyld，dyld从可执行文件的依赖开始，递归的加载所有依赖的动态链接库。</p>
+</li>
+<li><p>Rebase &amp; Bind</p>
+<p>由于ASLR(address space layout randomization)的存在，可执行文件和动态链接库在虚拟内存中的加载地址每次启动都不固定，所以需要这两步来修正。Rebase就是用来修正动态库内部指针的指向。而动态库之间存在依赖关系，在刚加载完所有动态库后，它们之间还是相互独立的状态。Bind就是将动态库内部符号表指向与所依赖的动态库的资源</p>
+</li>
+<li><p>Objc</p>
+<p>这一步开始进入Objc阶段，启动Runtime。这一步的主要工作有：注册Objc类，把category的定义插入方法列表，确保每一个selector的唯一</p>
+</li>
+<li><p>Initializers</p>
+<p>这一步的工作主要有：Objc的+load()函数、C++的构造函数属性函数 形如attribute((constructor)) void DoSomeInitializationWork()、非基本类型的C++静态全局变量的创建(通常是类或结构体)(non-trivial initializer) 比如一个全局静态结构体的构建，如果在构造函数中有繁重的工作，那么会拖慢启动速度     </p>
+</li>
+</ol>
+<ul>
+<li>动态库的load方法早于主二进制的所有load方法被调用</li>
+</ul>
+<h4 id="post-main-time"><a href="#post-main-time" class="headerlink" title="post-main time"></a>post-main time</h4><p>post-main time的统计口径：从进入main函数开始，到willFinishLaunch结束。大多数App都会在这个阶段完成相关SDK的初始化工作。</p>
+<h3 id="如何精确测量App启动速度"><a href="#如何精确测量App启动速度" class="headerlink" title="如何精确测量App启动速度"></a>如何精确测量App启动速度</h3><h4 id="Xcode-测量-pre-main-耗时"><a href="#Xcode-测量-pre-main-耗时" class="headerlink" title="Xcode 测量 pre-main 耗时"></a>Xcode 测量 pre-main 耗时</h4><p>Xcode 提供了一个很赞的方法，只需要在 Edit scheme -&gt; Run -&gt; Arguments 中将环境变量 DYLD_PRINT_STATISTICS 设为 1，就可以看到 main 之前各个阶段的时间消耗。</p>
+<pre><code>Total pre-main time: 2.1 seconds (100.0%)
+         dylib loading time: 106.81 milliseconds (4.9%)
+        rebase/binding time: 192.29 milliseconds (8.9%)
+            ObjC setup time: 855.42 milliseconds (39.7%)
+           initializer time: 995.53 milliseconds (46.2%)
+           slowest intializers :
+             libSystem.B.dylib :  29.33 milliseconds (1.3%)
+    libMainThreadChecker.dylib : 101.49 milliseconds (4.7%)
+          libglInterpose.dylib : 297.92 milliseconds (13.8%)
+         libMTLInterpose.dylib :  60.73 milliseconds (2.8%)
+                       ModelIO :  69.89 milliseconds (3.2%)
+              MediaLibraryCore :  44.31 milliseconds (2.0%)
+                   WDBuyerUniv : 363.40 milliseconds (16.9%)
+
+</code></pre><p>以上为买家版的pre-main阶段的详细耗时，可以看到大头是在ObjC setup和initializer阶段</p>
+<h4 id="如何统计线上-pre-main-时间"><a href="#如何统计线上-pre-main-时间" class="headerlink" title="如何统计线上 pre-main 时间"></a>如何统计线上 pre-main 时间</h4><h5 id="统计全部load方法的耗时"><a href="#统计全部load方法的耗时" class="headerlink" title="统计全部load方法的耗时"></a>统计全部load方法的耗时</h5><p>dyld会优先初始化动态库，然后初始化App的可执行文件。只要在最早加载的动态库中Hook App中全部的load函数，然后打点统计就可以了。那么问题就变成了如何找到最早加载的动态库？</p>
+<p>动态库的 load 顺序是与 Load Commands 顺序和依赖关系息息相关的。如图所示：</p>
+<p><img src="media/15354675150632/15357240745282.jpg" alt=""></p>
+<h5 id="如何调整Load-Command-顺序-让自定义的动态库率先被加载"><a href="#如何调整Load-Command-顺序-让自定义的动态库率先被加载" class="headerlink" title="如何调整Load Command 顺序, 让自定义的动态库率先被加载?"></a>如何调整Load Command 顺序, 让自定义的动态库率先被加载?</h5><p>思路1：Mach-O 本质是还是一个文件，想要让上图中的AAAAAHookLoad被第一个加载，那么只要把Load Command 与第一个动态库的Load Command 替换即可。该方案需要对Mach-O的文件格式有足够的了解</p>
+<p>思路2：编译过程，指定Load Command的顺序。按理说，Mach-O中Load Command的顺序应该是按照一定的规则写入的。只要能找到修改响应规则的方法，应该比思路1容易得多。目前还没找到（😂）</p>
+<p>自定义动态库，已Embed framework的方式加入App工程 -&gt; 自定义的某个class load 方法中 hook 全部类的load方法 -&gt; hook方法中统计load方法耗时 -&gt; 输出</p>
+<p><strong>注意事项：</strong></p>
+<p><strong>1. 不能为了统计性能，自己却造成了性能问题，获取所有的类并且 Hook load 函数还是比较耗时的，控制不好反而增加了启动时间</strong></p>
+<p><strong>2. 不当某个class 与其 category 同时实现了 load方法时，只能hook category 中的方法，需要考虑如何同时hook。</strong></p>
+<h5 id="度量-C-Static-Initializers"><a href="#度量-C-Static-Initializers" class="headerlink" title="度量 C++ Static Initializers"></a>度量 C++ Static Initializers</h5><p>Runtime 会从 mod_init_func 这个 section 中读取所有的函数指针，然后执行函数调用，这些函数指针对应的正是 C++ Static Initializers 和 <strong>attribute</strong>((constructor))修饰的函数。</p>
+<p>因为它们的执行顺序在 load 函数之后，所以可以在 load 函数中把 mod_init_func 中的地址都替换成我们的 hook 函数指针，然后再把原函数指针保存到一个全局数据中，当执行我们的 hook 函数时，从全局数组中取出原函数地址执行。</p>
+<p>在这里张贴下主要代码，更多可以参考这个链接：<a href="https://github.com/everettjf/Yolo/blob/master/HookCppInitilizers/hook_cpp_init.mm" target="_blank" rel="noopener">https://github.com/everettjf/Yolo/blob/master/HookCppInitilizers/hook_cpp_init.mm</a></p>
+<h3 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h3><h4 id="pre-main-阶段优化"><a href="#pre-main-阶段优化" class="headerlink" title="pre-main 阶段优化"></a>pre-main 阶段优化</h4><ol>
+<li><p>Load dylibs 阶段</p>
+<ul>
+<li>这一阶段，优化点主要在减少不必要的动态库，因为动态链接比较耗时，</li>
+<li>另外一点就是，尽可能把多个动态库合并成一个。系统的动态库有共享缓存等优化方案，但是我们的动态库变多了的话会非常耗时，所以合并动态库是一个有效且可行的方案</li>
+<li>也可以尝试对一些非启动阶段所必须的动态库，延时加载（仅想法，未验证）。</li>
+</ul>
+</li>
+<li><p>Rebase &amp; Bind     </p>
+<ul>
+<li>对于Objc，减少class，selector和category这些元数据的数量。</li>
+<li>对于C++，减少虚方法，因为虚方法会创建vtable。</li>
+</ul>
+</li>
+<li><p>Initializers</p>
+<ul>
+<li>减少load方法的耗时，尽量将load方法的工作移到initialize。</li>
+<li>不要使用 <strong>atribute</strong>((constructor)) 将方法显式标记为初始化器，而是让初始化方法调用时才执行。比如使用 dispatch_once(),pthread_once() 或 std::once()。也就是在第一次使用时才初始化，推迟了一部分工作耗时。</li>
+</ul>
+</li>
+</ol>
+<h4 id="main-阶段优化"><a href="#main-阶段优化" class="headerlink" title="main 阶段优化"></a>main 阶段优化</h4><p>启动任务分层，不需要及时初始化，不需要在主线程初始化的，都选择异步延时加载。</p>
+<h3 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h3><p><a href="https://www.jianshu.com/p/c14987eee107" target="_blank" rel="noopener">如何精确度量 iOS App 的启动时间</a></p>
+<p><a href="http://yulingtianxia.com/blog/2016/10/30/Optimizing-App-Startup-Time/" target="_blank" rel="noopener">优化 App 的启动时间</a></p>
+<p><a href="https://techblog.toutiao.com/2017/01/17/iosspeed/" target="_blank" rel="noopener">今日头条iOS客户端启动速度优化</a></p>
 
           
         
@@ -1732,426 +2146,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/03/10/ASDK渲染原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mochangxing">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mochangxing">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/03/10/ASDK渲染原理/" itemprop="url">
-                  ASDK渲染原理
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-                
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-10T13:32:01+08:00">2018-03-10</time>
-            
-
-            
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="RunLoop"><a href="#RunLoop" class="headerlink" title="RunLoop"></a>RunLoop</h3><h3 id="UIView的生命周期"><a href="#UIView的生命周期" class="headerlink" title="UIView的生命周期"></a>UIView的生命周期</h3><p>某个视图的层次一改变,该视图就会收到一次回调。</p>
-<ol>
-<li>调用addSubivew:成功后会给该视图发送didAddSubivew:回调,触发UIView的子类在心增视图时执行其他操作。</li>
-<li>didMoveToSuperview:会通知相关视图他们的上级视图已经变化。添加和移除都会调用,所以要判断 superView在不在</li>
-<li>视图移动前会发出willMoveToSuperview:回调</li>
-<li>didMoveToWindow:回调和didMoveToSuperview:相似,从命名上能看出其区别。</li>
-<li>willMoveToWindow:在视图移动前发出的回调。</li>
-<li>willRemoveToSubview:回调通知父视图子视图即将被删除</li>
-</ol>
-<h2 id="ASDK渲染过程"><a href="#ASDK渲染过程" class="headerlink" title="ASDK渲染过程"></a>ASDK渲染过程</h2><h3 id="主要流程简介"><a href="#主要流程简介" class="headerlink" title="主要流程简介"></a>主要流程简介</h3><p>ASDK的渲染过程主要分为4条主线</p>
-<ol>
-<li>初始化ASDisplayNode对应的UIView或者CALayer</li>
-<li>在当前视图进入视图层级时，执行setDisplay方法</li>
-<li>display方法执行时，想后台线程分发绘制事物</li>
-<li>注册主线层RunLoop的观察者，在每个RunLoop结束时回调</li>
-</ol>
-<h4 id="初始化ASDisplayNode对应的UIView或者CALayer"><a href="#初始化ASDisplayNode对应的UIView或者CALayer" class="headerlink" title="初始化ASDisplayNode对应的UIView或者CALayer"></a>初始化ASDisplayNode对应的UIView或者CALayer</h4><h4 id="在当前视图进入视图层级时，执行setDisplay方法"><a href="#在当前视图进入视图层级时，执行setDisplay方法" class="headerlink" title="在当前视图进入视图层级时，执行setDisplay方法"></a>在当前视图进入视图层级时，执行setDisplay方法</h4><h4 id="display方法执行时，想后台线程分发绘制事物"><a href="#display方法执行时，想后台线程分发绘制事物" class="headerlink" title="display方法执行时，想后台线程分发绘制事物"></a>display方法执行时，想后台线程分发绘制事物</h4><p>派发异步绘制任务（_ASDisplayLayer）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">- (void)display</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  [self _hackResetNeedsDisplay];</span><br><span class="line"></span><br><span class="line">  if (self.displaySuspended) &#123;</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  [self display:self.displaysAsynchronously];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">- (void)display:(BOOL)asynchronously</span><br><span class="line">&#123;</span><br><span class="line">  if (CGRectIsEmpty(self.bounds)) &#123;</span><br><span class="line">    _attemptedDisplayWhileZeroSized = YES;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  [self.asyncDelegate displayAsyncLayer:self asynchronously:asynchronously];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>主要是通过delegate的代理了派发流程<br>派发流程（ASDisplayNode + AsyncDisplay）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">- (void)displayAsyncLayer:(_ASDisplayLayer *)asyncLayer asynchronously:(BOOL)asynchronously</span><br><span class="line">&#123;</span><br><span class="line">   </span><br><span class="line">  CALayer *layer = _layer;</span><br><span class="line">  BOOL rasterizesSubtree = _flags.rasterizesSubtree;</span><br><span class="line">  </span><br><span class="line">  __instanceLock__.unlock();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  asyncdisplaykit_async_transaction_operation_block_t displayBlock = [self _displayBlockWithAsynchronous:asynchronously isCancelledBlock:isCancelledBlock rasterizing:NO];</span><br><span class="line">  </span><br><span class="line">  if (!displayBlock) &#123;</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line"> </span><br><span class="line">  asyncdisplaykit_async_transaction_operation_completion_block_t completionBlock = ^(id&lt;NSObject&gt; value, BOOL canceled)&#123;</span><br><span class="line">    ASDisplayNodeCAssertMainThread();</span><br><span class="line">    if (!canceled &amp;&amp; !isCancelledBlock()) &#123;</span><br><span class="line">      UIImage *image = (UIImage *)value;</span><br><span class="line">      BOOL stretchable = (NO == UIEdgeInsetsEqualToEdgeInsets(image.capInsets, UIEdgeInsetsZero));</span><br><span class="line">      if (stretchable) &#123;</span><br><span class="line">        ASDisplayNodeSetResizableContents(layer, image);</span><br><span class="line">      &#125; else &#123;</span><br><span class="line">        layer.contentsScale = self.contentsScale;</span><br><span class="line">        layer.contents = (id)image.CGImage;</span><br><span class="line">      &#125;</span><br><span class="line">      [self didDisplayAsyncLayer:self.asyncLayer];</span><br><span class="line">      </span><br><span class="line">      if (rasterizesSubtree) &#123;</span><br><span class="line">        ASDisplayNodePerformBlockOnEverySubnode(self, NO, ^(ASDisplayNode * _Nonnull node) &#123;</span><br><span class="line">          [node didDisplayAsyncLayer:node.asyncLayer];</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  // Call willDisplay immediately in either case</span><br><span class="line">  [self willDisplayAsyncLayer:self.asyncLayer asynchronously:asynchronously];</span><br><span class="line">  </span><br><span class="line">  if (rasterizesSubtree) &#123;</span><br><span class="line">    ASDisplayNodePerformBlockOnEverySubnode(self, NO, ^(ASDisplayNode * _Nonnull node) &#123;</span><br><span class="line">      [node willDisplayAsyncLayer:node.asyncLayer asynchronously:asynchronously];</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  if (asynchronously) &#123;</span><br><span class="line">    // Async rendering operations are contained by a transaction, which allows them to proceed and concurrently</span><br><span class="line">    // while synchronizing the final application of the results to the layer&apos;s contents property (completionBlock).</span><br><span class="line">    </span><br><span class="line">    // First, look to see if we are expected to join a parent&apos;s transaction container.</span><br><span class="line">    CALayer *containerLayer = layer.asyncdisplaykit_parentTransactionContainer ? : layer;</span><br><span class="line">    </span><br><span class="line">    // In the case that a transaction does not yet exist (such as for an individual node outside of a container),</span><br><span class="line">    // this call will allocate the transaction and add it to _ASAsyncTransactionGroup.</span><br><span class="line">    // It will automatically commit the transaction at the end of the runloop.</span><br><span class="line">    _ASAsyncTransaction *transaction = containerLayer.asyncdisplaykit_asyncTransaction;</span><br><span class="line">    </span><br><span class="line">    // Adding this displayBlock operation to the transaction will start it IMMEDIATELY.</span><br><span class="line">    // The only function of the transaction commit is to gate the calling of the completionBlock.</span><br><span class="line">    [transaction addOperationWithBlock:displayBlock priority:self.drawingPriority queue:[_ASDisplayLayer displayQueue] completion:completionBlock];</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    UIImage *contents = (UIImage *)displayBlock();</span><br><span class="line">    completionBlock(contents, NO);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>代码比较长，但逻辑比较简单，主要做了三件事情：</p>
-<ol>
-<li>创建displayBlock，真正逻辑的渲染都在这里</li>
-<li>创建completionBlock，completionBlock会在主线程执行，负责将渲染完成的内存显示到屏幕</li>
-<li>将以上两个block添加到_ASAsyncTransaction</li>
-</ol>
-<p>到这里分发的过程就算完成了，以上只是将block添加到了transaction，那block的执行时机是什么时候呢？</p>
-<h4 id="注册主线层RunLoop的观察者，在每个RunLoop结束时回调"><a href="#注册主线层RunLoop的观察者，在每个RunLoop结束时回调" class="headerlink" title="注册主线层RunLoop的观察者，在每个RunLoop结束时回调"></a>注册主线层RunLoop的观察者，在每个RunLoop结束时回调</h4><p>上一节中提到的两个block的执行时机，是通过注册主线层RunLoop的观察者来确定的。</p>
-<p>_ASAsyncTransaction</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">+ (void)registerTransactionGroupAsMainRunloopObserver:(_ASAsyncTransactionGroup *)transactionGroup</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line">  static CFRunLoopObserverRef observer;</span><br><span class="line">  ASDisplayNodeAssert(observer == NULL, @&quot;A _ASAsyncTransactionGroup should not be registered on the main runloop twice&quot;);</span><br><span class="line">  // defer the commit of the transaction so we can add more during the current runloop iteration</span><br><span class="line">  CFRunLoopRef runLoop = CFRunLoopGetCurrent();</span><br><span class="line">  CFOptionFlags activities = (kCFRunLoopBeforeWaiting | // before the run loop starts sleeping</span><br><span class="line">                              kCFRunLoopExit);          // before exiting a runloop run</span><br><span class="line"></span><br><span class="line">  observer = CFRunLoopObserverCreateWithHandler(NULL,        // allocator</span><br><span class="line">                                                activities,  // activities</span><br><span class="line">                                                YES,         // repeats</span><br><span class="line">                                                INT_MAX,     // order after CA transaction commits</span><br><span class="line">                                                ^(CFRunLoopObserverRef observer, CFRunLoopActivity activity) &#123;</span><br><span class="line">                                                  ASDisplayNodeCAssertMainThread();</span><br><span class="line">                                                  [transactionGroup commit];</span><br><span class="line">                                                &#125;);</span><br><span class="line">  CFRunLoopAddObserver(runLoop, observer, kCFRunLoopCommonModes);</span><br><span class="line">  CFRelease(observer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>上述代码会在<code>RunLoop</code>即将退出或进入休眠时，执行<code>transactionGroup</code>的<code>commit</code>方法。也就是每次<code>RunLoop</code>结束时开始绘制内容</p>
-<p>_ASAsyncTransactionGroup</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">- (void)commit</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line"></span><br><span class="line">  if ([_containers count]) &#123;</span><br><span class="line">    NSHashTable *containersToCommit = _containers;</span><br><span class="line">    _containers = [NSHashTable hashTableWithOptions:NSHashTableObjectPointerPersonality];</span><br><span class="line"></span><br><span class="line">    for (id&lt;ASAsyncTransactionContainer&gt; container in containersToCommit) &#123;</span><br><span class="line">      // Note that the act of committing a transaction may open a new transaction,</span><br><span class="line">      // so we must nil out the transaction we&apos;re committing first.</span><br><span class="line">      _ASAsyncTransaction *transaction = container.asyncdisplaykit_currentAsyncTransaction;</span><br><span class="line">      container.asyncdisplaykit_currentAsyncTransaction = nil;</span><br><span class="line">      [transaction commit];</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>ASAsyncTransactionOperation</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">- (void)commit</span><br><span class="line">&#123;</span><br><span class="line">  ASAsyncTransactionAssertMainThread();</span><br><span class="line">  NSAssert(self.state == ASAsyncTransactionStateOpen, @&quot;You cannot double-commit a transaction&quot;);</span><br><span class="line">  self.state = ASAsyncTransactionStateCommitted;</span><br><span class="line">  </span><br><span class="line">  if ([_operations count] == 0) &#123;</span><br><span class="line">    // Fast path: if a transaction was opened, but no operations were added, execute completion block synchronously.</span><br><span class="line">    if (_completionBlock) &#123;</span><br><span class="line">      _completionBlock(self, NO);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    NSAssert(_group != NULL, @&quot;If there are operations, dispatch group should have been created&quot;);</span><br><span class="line">    </span><br><span class="line">    _group-&gt;notify(dispatch_get_main_queue(), ^&#123;</span><br><span class="line">      [self completeTransaction];</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">- (void)completeTransaction</span><br><span class="line">&#123;</span><br><span class="line">  ASAsyncTransactionAssertMainThread();</span><br><span class="line">  ASAsyncTransactionState state = self.state;</span><br><span class="line">  if (state != ASAsyncTransactionStateComplete) &#123;</span><br><span class="line">    BOOL isCanceled = (state == ASAsyncTransactionStateCanceled);</span><br><span class="line">    for (ASAsyncTransactionOperation *operation in _operations) &#123;</span><br><span class="line">      [operation callAndReleaseCompletionBlock:isCanceled];</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    // Always set state to Complete, even if we were cancelled, to block any extraneous</span><br><span class="line">    // calls to this method that may have been scheduled for the next runloop</span><br><span class="line">    // (e.g. if we needed to force one in this runloop with -waitUntilComplete, but another was already scheduled)</span><br><span class="line">    self.state = ASAsyncTransactionStateComplete;</span><br><span class="line"></span><br><span class="line">    if (_completionBlock) &#123;</span><br><span class="line">      _completionBlock(self, isCanceled);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>上述代码描述了commit流程，目前只看到了上一节中提到的<code>completionBlock</code>在主线程被执行，<code>displayBlock</code>又是什么时候被执行的呢？这就得看<code>ASAsyncTransactionQueue</code>了</p>
-<h3 id="ASAsyncTransactionQueue-绘制事物队列"><a href="#ASAsyncTransactionQueue-绘制事物队列" class="headerlink" title="ASAsyncTransactionQueue 绘制事物队列"></a>ASAsyncTransactionQueue 绘制事物队列</h3><p><code>ASAsyncTransactionQueue</code> 是后台绘制线程与主线层之间通信的桥梁，负责将后台绘制完成的内容，通知给主线层显示。其实是一个<strong>生产-消费者</strong>的设计模式，这里有两条生产线：</p>
-<ol>
-<li>第一条生产线是上一节中提到的<code>display</code>方法中，不停地生产 <code>displayBlock</code></li>
-<li>第二条生产线是，主线层RunLoop的观察者不停地生产 <code>GroupNotify</code>，<code>GroupNotify</code>其实是对<code>completionBlock</code>的封装</li>
-</ol>
-<p>具体消费流程：</p>
-<ol>
-<li><p>视图进入视图层时，也就是<code>_ASDisplayView</code>的<code>willMoveToWindow</code>被调用时，对应的CALayer执行<code>setDisplay</code>方法</p>
-</li>
-<li><p>对应的CALayer的<code>display</code>执行，向后台线程分发绘制事物，将上一节提到两个block添加到_ASAsyncTransaction，并间接调用<code>ASAsyncTransactionQueue</code>的<code>schedule</code>方法</p>
-</li>
-<li><p><code>schedule</code>方法将<code>displayBlock</code>压入堆栈，然后将<code>displayBlock</code>出栈并执行，执行<code>displayBlock</code>后调用<code>leave</code>方法。<strong>这里为什么要用堆栈呢，主要为了保证最后进入视图层的View，最早被绘制。</strong></p>
-</li>
-<li><p><code>leave</code>方法会取出第二条生产先产生的<code>notify</code>并执行，也就是在主线程中显示绘制完成的内容。</p>
-</li>
-</ol>
-<p>可以看出，ASDK确实将许多昂贵的操作移出了主线程，有效地加快了视图的绘制与渲染，保证了主线程的流畅性</p>
-<h3 id="ASDK是如何提高绘制效率的"><a href="#ASDK是如何提高绘制效率的" class="headerlink" title="ASDK是如何提高绘制效率的"></a>ASDK是如何提高绘制效率的</h3><p>在上一节中，我们了解到了ASDK的渲染流程，主要是通过将<code>displayBlock</code>中的绘制放到后台线程，加快了视图的绘制与渲染，保证了主线程的流畅性。那ASDK又是如何提高绘制效率的呢？<br>先看一下<code>displayBlock</code>的创建</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">- (asyncdisplaykit_async_transaction_operation_block_t)_displayBlockWithAsynchronous:(BOOL)asynchronous</span><br><span class="line">                                                                    isCancelledBlock:(asdisplaynode_iscancelled_block_t)isCancelledBlock</span><br><span class="line">                                                                         rasterizing:(BOOL)rasterizing</span><br><span class="line">&#123;</span><br><span class="line">  ASDisplayNodeAssertMainThread();</span><br><span class="line"></span><br><span class="line">  if (shouldBeginRasterizing) &#123;</span><br><span class="line">    // Collect displayBlocks for all descendants.</span><br><span class="line">    NSMutableArray *displayBlocks = [NSMutableArray array];</span><br><span class="line">    [self _recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock:isCancelledBlock displayBlocks:displayBlocks];</span><br><span class="line">    CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line">    </span><br><span class="line">    // If [UIColor clearColor] or another semitransparent background color is used, include alpha channel when rasterizing.</span><br><span class="line">    // Unlike CALayer drawing, we include the backgroundColor as a base during rasterization.</span><br><span class="line">    opaque = opaque &amp;&amp; CGColorGetAlpha(backgroundColor.CGColor) == 1.0f;</span><br><span class="line"></span><br><span class="line">    displayBlock = ^id&#123;</span><br><span class="line">      CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line">      </span><br><span class="line">      UIGraphicsBeginImageContextWithOptions(bounds.size, opaque, contentsScaleForDisplay);</span><br><span class="line"></span><br><span class="line">      for (dispatch_block_t block in displayBlocks) &#123;</span><br><span class="line">        CHECK_CANCELLED_AND_RETURN_NIL(UIGraphicsEndImageContext());</span><br><span class="line">        block();</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      UIImage *image = UIGraphicsGetImageFromCurrentImageContext();</span><br><span class="line">      UIGraphicsEndImageContext();</span><br><span class="line"></span><br><span class="line">      ASDN_DELAY_FOR_DISPLAY();</span><br><span class="line">      return image;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    displayBlock = ^id&#123;</span><br><span class="line">      CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line"></span><br><span class="line">      if (shouldCreateGraphicsContext) &#123;</span><br><span class="line">        UIGraphicsBeginImageContextWithOptions(bounds.size, opaque, contentsScaleForDisplay);</span><br><span class="line">        CHECK_CANCELLED_AND_RETURN_NIL( UIGraphicsEndImageContext(); );</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      CGContextRef currentContext = UIGraphicsGetCurrentContext();</span><br><span class="line">      UIImage *image = nil;</span><br><span class="line">      </span><br><span class="line">      // For -display methods, we don&apos;t have a context, and thus will not call the _willDisplayNodeContentWithRenderingContext or</span><br><span class="line">      // _didDisplayNodeContentWithRenderingContext blocks. It&apos;s up to the implementation of -display... to do what it needs.</span><br><span class="line">      [self __willDisplayNodeContentWithRenderingContext:currentContext drawParameters:drawParameters];</span><br><span class="line">      </span><br><span class="line">      if (usesImageDisplay) &#123;                                   // If we are using a display method, we&apos;ll get an image back directly.</span><br><span class="line">        image = [self.class displayWithParameters:drawParameters isCancelled:isCancelledBlock];</span><br><span class="line">      &#125; else if (usesDrawRect) &#123;                                // If we&apos;re using a draw method, this will operate on the currentContext.</span><br><span class="line">        [self.class drawRect:bounds withParameters:drawParameters isCancelled:isCancelledBlock isRasterizing:rasterizing];</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      [self __didDisplayNodeContentWithRenderingContext:currentContext image:&amp;image drawParameters:drawParameters backgroundColor:backgroundColor borderWidth:borderWidth borderColor:borderColor];</span><br><span class="line">      </span><br><span class="line">      if (shouldCreateGraphicsContext) &#123;</span><br><span class="line">        CHECK_CANCELLED_AND_RETURN_NIL( UIGraphicsEndImageContext(); );</span><br><span class="line">        image = UIGraphicsGetImageFromCurrentImageContext();</span><br><span class="line">        UIGraphicsEndImageContext();</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      ASDN_DELAY_FOR_DISPLAY();</span><br><span class="line">      return image;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return displayBlock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可看到ASDK根据<code>shouldBeginRasterizing</code>将<code>displayBlock</code>指向了不同的block。</p>
-<h4 id="栅格化"><a href="#栅格化" class="headerlink" title="栅格化"></a>栅格化</h4><p><code>shouldBeginRasterizing</code>是栅格化的一个属性，当它为<code>true</code>时，ASDK会将子视图递归的绘制在父视图上。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">if (shouldBeginRasterizing) &#123;</span><br><span class="line">    // Collect displayBlocks for all descendants.</span><br><span class="line">    NSMutableArray *displayBlocks = [NSMutableArray array];</span><br><span class="line">    [self _recursivelyRasterizeSelfAndSublayersWithIsCancelledBlock:isCancelledBlock displayBlocks:displayBlocks];</span><br><span class="line">    CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line">    </span><br><span class="line">    // If [UIColor clearColor] or another semitransparent background color is used, include alpha channel when rasterizing.</span><br><span class="line">    // Unlike CALayer drawing, we include the backgroundColor as a base during rasterization.</span><br><span class="line">    opaque = opaque &amp;&amp; CGColorGetAlpha(backgroundColor.CGColor) == 1.0f;</span><br><span class="line"></span><br><span class="line">    displayBlock = ^id&#123;</span><br><span class="line">      CHECK_CANCELLED_AND_RETURN_NIL();</span><br><span class="line">      </span><br><span class="line">      UIGraphicsBeginImageContextWithOptions(bounds.size, opaque, contentsScaleForDisplay);</span><br><span class="line"></span><br><span class="line">      for (dispatch_block_t block in displayBlocks) &#123;</span><br><span class="line">        CHECK_CANCELLED_AND_RETURN_NIL(UIGraphicsEndImageContext());</span><br><span class="line">        block();</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      UIImage *image = UIGraphicsGetImageFromCurrentImageContext();</span><br><span class="line">      UIGraphicsEndImageContext();</span><br><span class="line"></span><br><span class="line">      ASDN_DELAY_FOR_DISPLAY();</span><br><span class="line">      return image;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<h4 id="绘制图片"><a href="#绘制图片" class="headerlink" title="绘制图片"></a>绘制图片</h4><p>这种方式更多的适用于图片节点<code>ASImageNode</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">- (asyncdisplaykit_async_transaction_operation_block_t)_displayBlockWithAsynchronous:(BOOL)asynchronous isCancelledBlock:(asdisplaynode_iscancelled_block_t)isCancelledBlock rasterizing:(BOOL)rasterizing &#123;</span><br><span class="line">  asyncdisplaykit_async_transaction_operation_block_t displayBlock = nil;</span><br><span class="line">  ASDisplayNodeFlags flags = _flags;</span><br><span class="line"></span><br><span class="line">  if (!rasterizing &amp;&amp; self.shouldRasterizeDescendants) &#123;</span><br><span class="line">	#：栅格化</span><br><span class="line">  &#125; else if (flags.implementsInstanceImageDisplay || flags.implementsImageDisplay) &#123;</span><br><span class="line">	id drawParameters = [self drawParameters];</span><br><span class="line">	</span><br><span class="line">	displayBlock = ^id&#123;</span><br><span class="line">	  UIImage *result = nil;</span><br><span class="line">	  if (flags.implementsInstanceImageDisplay) &#123;</span><br><span class="line">		result = [self displayWithParameters:drawParameters isCancelled:isCancelledBlock];</span><br><span class="line">	  &#125; else &#123;</span><br><span class="line">		result = [[self class] displayWithParameters:drawParameters isCancelled:isCancelledBlock];</span><br><span class="line">	  &#125;</span><br><span class="line">	  return result;</span><br><span class="line">	&#125;;</span><br><span class="line">  &#125; else if (flags.implementsInstanceDrawRect || flags.implementsDrawRect) &#123;</span><br><span class="line">	#：提供 context，使用 CG 绘图</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return [displayBlock copy];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="使用GC绘制"><a href="#使用GC绘制" class="headerlink" title="使用GC绘制"></a>使用GC绘制</h4><p>文字的绘制一般都会在<code>- drawRect:withParameters:isCancelled:isRasterizing:</code>进行，这个方法只是提供了一个合适的用于绘制的上下文，该方法不止可以绘制文字，只是在这里绘制文字比较常见：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">- (asyncdisplaykit_async_transaction_operation_block_t)_displayBlockWithAsynchronous:(BOOL)asynchronous isCancelledBlock:(asdisplaynode_iscancelled_block_t)isCancelledBlock rasterizing:(BOOL)rasterizing &#123;</span><br><span class="line">  asyncdisplaykit_async_transaction_operation_block_t displayBlock = nil;</span><br><span class="line">  ASDisplayNodeFlags flags = _flags;</span><br><span class="line"></span><br><span class="line">  if (!rasterizing &amp;&amp; self.shouldRasterizeDescendants) &#123;</span><br><span class="line">	#：栅格化</span><br><span class="line">  &#125; else if (flags.implementsInstanceImageDisplay || flags.implementsImageDisplay) &#123;</span><br><span class="line">	#：绘制 UIImage</span><br><span class="line">  &#125; else if (flags.implementsInstanceDrawRect || flags.implementsDrawRect) &#123;</span><br><span class="line">	  if (!rasterizing) &#123;</span><br><span class="line">		UIGraphicsBeginImageContextWithOptions(bounds.size, opaque, contentsScaleForDisplay);</span><br><span class="line">	  &#125;</span><br><span class="line"></span><br><span class="line">	  if (flags.implementsInstanceDrawRect) &#123;</span><br><span class="line">		[self drawRect:bounds withParameters:drawParameters isCancelled:isCancelledBlock isRasterizing:rasterizing];</span><br><span class="line">	  &#125; else &#123;</span><br><span class="line">		[[self class] drawRect:bounds withParameters:drawParameters isCancelled:isCancelledBlock isRasterizing:rasterizing];</span><br><span class="line">	  &#125;</span><br><span class="line">	  </span><br><span class="line">	  UIImage *image = nil;</span><br><span class="line">	  if (!rasterizing) &#123;</span><br><span class="line">		image = UIGraphicsGetImageFromCurrentImageContext();</span><br><span class="line">		UIGraphicsEndImageContext();</span><br><span class="line">	  &#125;</span><br><span class="line"></span><br><span class="line">	  return image;</span><br><span class="line">	&#125;;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<h2 id="ASNetworkImageNode"><a href="#ASNetworkImageNode" class="headerlink" title="ASNetworkImageNode"></a>ASNetworkImageNode</h2><h3 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h3><p>一般的使用方法，初始化并设置一个图片URL就可以了</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ASNetworkImageNode *imageNode = [[ASNetworkImageNode alloc] init];</span><br><span class="line">imageNode.URL = [NSURL URLWithString:@&quot;https://someurl.com/image_uri&quot;];</span><br></pre></td></tr></table></figure>
-<p>ASNetworkImageNode的<code>setURL</code>方法最终调用的其实是<code>- (void)setURLs: resetToDefault:</code>方法</p>
-<p><code>- (void)setURLs: resetToDefault:</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- (void)setURLs:(NSArray &lt;NSURL *&gt; *)URLs resetToDefault:(BOOL)reset&#123;</span><br><span class="line">    [self _locked_cancelImageDownloadWithResumePossibility:NO];</span><br><span class="line">    [self setNeedsPreload];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>做了两件事情：</p>
-<ol>
-<li>取消上一张图片的下载，取消下载就是通过调用<code>_downloader</code> 的<code>cancelImageDownloadForIdentifier</code>方法来取消</li>
-</ol>
-<ol start="2">
-<li>预加载图片，预加载则是将创建<code>_downloader</code>的任务封装block扔到队列里，让异步线程去执行。</li>
-</ol>
-<h3 id="渲染过程"><a href="#渲染过程" class="headerlink" title="渲染过程"></a>渲染过程</h3><p>ASNetworkImageNode调用链<br><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15196252410771/15206971565240.jpg" alt=""></p>
-<p>可以看到ASNetworkImageNode在<code>willMoveToWindow</code>方法中，间接调用到了<code>_downloadImageWithCompletion</code>方法，该方法实际上是将下载图片的block抛给异步线程处理。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">- (void)_downloadImageWithCompletion:(void (^)(id &lt;ASImageContainerProtocol&gt; imageContainer, NSError*, id downloadIdentifier))finished</span><br><span class="line">&#123;</span><br><span class="line">   ASPerformBlockOnBackgroundThread(^&#123;</span><br><span class="line">        //下载网络图片</span><br><span class="line">         _downloadIdentifier = [_downloader downloadImageWithURLs:urls</span><br><span class="line">                                                callbackQueue:dispatch_get_main_queue()</span><br><span class="line">                                             downloadProgress:NULL</span><br><span class="line">                                                   completion:^(id &lt;ASImageContainerProtocol&gt; _Nullable imageContainer, NSError * _Nullable error, id  _Nullable downloadIdentifier) &#123;</span><br><span class="line">                                                     if (finished != NULL) &#123;</span><br><span class="line">                                                       finished(imageContainer, error, downloadIdentifier);</span><br><span class="line">                                                     &#125;</span><br><span class="line">                                                   &#125;];   </span><br><span class="line">   &#125;); </span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">void ASPerformBlockOnBackgroundThread(void (^block)(void))</span><br><span class="line">&#123;</span><br><span class="line">  if (block == nil)&#123;</span><br><span class="line">    return;</span><br><span class="line">  &#125;</span><br><span class="line">  if (ASDisplayNodeThreadIsMain()) &#123;</span><br><span class="line">    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), block);</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    block();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>那么ASNetworkImageView的图片加载逻辑是：</p>
-<p><strong>视图进入视图层（willMoveToWindow）-&gt; 将下载图片封装成任务丢给异步线程（_downloadImageWithCompletion）-&gt; 异步下载完成后，将图片渲染到屏幕，也就是在传给<code>-downloadImageWithURLs:                       callbackQueue: downloadProgress: completion:;</code> 方法的<code>completion</code> block中将图片设置到ASNetworkImageView的</strong></p>
-<p>这个<code>completion</code>block是在 <code>- (void)_lazilyLoadImageIfNecessary</code>方法中创建并传给<code>_downloadImageWithCompletion</code>的</p>
-<p><code>completion</code>block代码<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">auto finished = ^(id &lt;ASImageContainerProtocol&gt;imageContainer, NSError *error, id downloadIdentifier, ASNetworkImageSource imageSource) &#123;</span><br><span class="line">     if (imageContainer != nil) &#123;</span><br><span class="line">         [strongSelf _locked_setCurrentImageQuality:1.0];</span><br><span class="line">         if ([imageContainer asdk_animatedImageData] &amp;&amp; strongSelf-&gt;_downloaderFlags.downloaderImplementsAnimatedImage) &#123;</span><br><span class="line">           id animatedImage = [strongSelf-&gt;_downloader animatedImageWithData:[imageContainer asdk_animatedImageData]];</span><br><span class="line">           [strongSelf _locked_setAnimatedImage:animatedImage];</span><br><span class="line">         &#125; else &#123;</span><br><span class="line">           [strongSelf _locked__setImage:[imageContainer asdk_image]];</span><br><span class="line">         &#125;</span><br><span class="line">         strongSelf-&gt;_imageLoaded = YES;</span><br><span class="line">       &#125;</span><br><span class="line">   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
-<p>事实上在<code>_locked__setImage:</code>方法中又会调用<code>setNeedsDisplay</code>方法，从而触发上一节讲到的异步渲染逻辑。</p>
-<h3 id="使用过程中存在的坑"><a href="#使用过程中存在的坑" class="headerlink" title="使用过程中存在的坑"></a>使用过程中存在的坑</h3><p>通过前面两个小节可以发现，<code>_downloader</code>的创建以及<code>cancel</code>其实是在不同的线程里执行的。那么就有可能存在<code>cancelImageDownloadForIdentifier</code>会在<code>_downloader</code>创建之前执行，从而导致加载失效URL的情况，在页面快速滚动的时候会造成UIView的闪烁，以及产生性能问题，造成卡顿。</p>
-
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/01/27/Objective-C高级编程+iOS与OS+X多线程和内存管理 读书笔记之 block/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Mochangxing">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Mochangxing">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/01/27/Objective-C高级编程+iOS与OS+X多线程和内存管理 读书笔记之 block/" itemprop="url">
-                  Objective-C高级编程+iOS与OS+X多线程和内存管理 读书笔记之 block
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-                
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">Posted on</span>
-              
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-01-27T13:32:01+08:00">2018-01-27</time>
-            
-
-            
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="block概要"><a href="#block概要" class="headerlink" title="block概要"></a>block概要</h2><p><img src="media/15170297966756/15170682755746.jpg" alt=""></p>
-<blockquote>
-<p>概念：block是带有<strong>自动变量</strong>的<strong>匿名函数</strong></p>
-</blockquote>
-<h2 id="block模式"><a href="#block模式" class="headerlink" title="block模式"></a>block模式</h2><h3 id="1-语法："><a href="#1-语法：" class="headerlink" title="1. 语法："></a>1. 语法：</h3><p><code>^</code> <code>返回值类型（可省略）`</code>参数列表<code></code>表达式`</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">^ int (int count) &#123;</span><br><span class="line">    return count + 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="2-block类型变量"><a href="#2-block类型变量" class="headerlink" title="2. block类型变量"></a>2. block类型变量</h3><p>当函数参数与返回值使用block类型时，记述方式比较复杂，可以用 <strong>typedef</strong> 来解决</p>
-<p><code>typedef int (^block_t)(int);</code><br><code>void func(block_t block)</code><br><code>block_t func()</code></p>
-<h3 id="3-自动截获变量"><a href="#3-自动截获变量" class="headerlink" title="3.自动截获变量"></a>3.自动截获变量</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        // insert code here...</span><br><span class="line">        </span><br><span class="line">        int a = 0;</span><br><span class="line">        void(^block)(void) = ^()&#123;</span><br><span class="line">            NSLog(@&quot;%d&quot;, a);</span><br><span class="line">        &#125;;</span><br><span class="line">        a = 1;</span><br><span class="line">        block();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>打印的出来的是 0</p>
-<blockquote>
-<p>block表达式截获所使用的自动变量的值，即保存自动变量的瞬时值</p>
-</blockquote>
-<h3 id="4-block修饰符"><a href="#4-block修饰符" class="headerlink" title="4. __block修饰符"></a>4. __block修饰符</h3><p>block只能截获自动变的瞬时值，但不能给自动变量赋值<br>使用__block修饰符的自动变量，可以在block表达式中被赋值 <strong>自动变量截获没有实现对C语言数组的截获， 使用时编译器会报错</strong></p>
-<h2 id="block实现"><a href="#block实现" class="headerlink" title="block实现"></a>block实现</h2><p>编译前源码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        // insert code here...</span><br><span class="line">        int a = 0;</span><br><span class="line">        void(^block)(void) = ^()&#123;</span><br><span class="line">            printf(&quot;%d&quot;, a);</span><br><span class="line">        &#125;;</span><br><span class="line">        a = 1;</span><br><span class="line">        block();</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译后源码</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line"></span><br><span class="line">    /* @autoreleasepool */ &#123; __AtAutoreleasePool __autoreleasepool; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        int a = 0;</span><br><span class="line">        void(*block)(void) = ((void (*)())&amp;__main_block_impl_0((void *)__main_block_func_0, &amp;__main_block_desc_0_DATA, a));</span><br><span class="line">        a = 1;</span><br><span class="line">        ((void (*)(__block_impl *))((__block_impl *)block)-&gt;FuncPtr)((__block_impl *)block);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>先来看看 __main_block_func_0 的定义 </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">static void __main_block_func_0(struct __main_block_impl_0 *__cself) &#123;</span><br><span class="line">    // 我们的源码的编译后的函数体，值引用了变量 a</span><br><span class="line">  int a = __cself-&gt;a; // bound by copy</span><br><span class="line">            </span><br><span class="line">            printf(&quot;%d&quot;, a);</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
-<p>那 <strong>main_block_impl_0 又是什么呢 ，看一下声明
-</strong>main_block_impl_0是一个结构体，有三个成员</p>
-<ol>
-<li>struct <strong>block_impl impl // 结构体 </strong>block_impl 应该是block的本质</li>
-<li>struct __main_block_desc_0 Desc</li>
-<li>int a</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line">struct __main_block_impl_0 &#123;</span><br><span class="line">  struct __block_impl impl; </span><br><span class="line">  struct __main_block_desc_0* Desc;</span><br><span class="line">  int a;</span><br></pre></td></tr></table></figure>
-<p>再看看结构体 __block_impl 的定义，四个成员</p>
-<ol>
-<li>isa指针</li>
-<li>Flags</li>
-<li>Reserved</li>
-<li>函数指针FuncPtr，函数指针指向源码编译后生成的函数，也就是__main_block_func_0</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">struct __block_impl &#123;</span><br><span class="line">  void *isa;</span><br><span class="line">  int Flags;</span><br><span class="line">  int Reserved;</span><br><span class="line">  void *FuncPtr;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>再回头看看__main_block_impl_0 的构造函数：</p>
-<p>主要是 给<strong>block_impl赋值，以及截获自动变量。可以看到</strong>block_impl的isa指针被赋值为_NSConcreteStackBlock </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, int _a, int flags=0) : a(_a) &#123;</span><br><span class="line">    impl.isa = &amp;_NSConcreteStackBlock;</span><br><span class="line">    impl.Flags = flags;</span><br><span class="line">    impl.FuncPtr = fp;</span><br><span class="line">    Desc = desc;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>结构体<strong>main_block_impl_0还有一个成员没有分析到： struct </strong>main_block_desc_0* Desc;</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">static struct __main_block_desc_0 &#123;</span><br><span class="line">  size_t reserved;</span><br><span class="line">  size_t Block_size;</span><br><span class="line">&#125; __main_block_desc_0_DATA = &#123; 0, sizeof(struct __main_block_impl_0)&#125;;</span><br></pre></td></tr></table></figure>
-<p>根据成员变量和构造函数，很容易看出，只要是描述了 __main_block_impl_0 的实例大小</p>
-<p>至此，所有相关的结构体都分析了，回过头来看看，编译后的源码<br>再贴一下，翻回去再翻回来挺累的，去掉了转换</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line"></span><br><span class="line">    /* @autoreleasepool */ &#123; __AtAutoreleasePool __autoreleasepool; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        int a = 0;</span><br><span class="line">        // 构造block</span><br><span class="line">        void(*block)(void) = ((void (*)())&amp;__main_block_impl_0((void *)__main_block_func_0, &amp;__main_block_desc_0_DATA, a));</span><br><span class="line">        a = 1;</span><br><span class="line">       </span><br><span class="line">       // 调用block， FuncPtr也就是__main_block_func_0 入参就是blcok </span><br><span class="line">        block-&gt;FuncPtr(block)</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这就很清楚了，其实就是编译器生成了FuncPtr函数和block结构体，结构体值引用了自动变量（所以说是<strong>截获自动变量</strong>），调用的时候执行下FuncPtr。还有一个问题 _NSConcreteStackBlock 是个什么类？</p>
-<h2 id="block-说明符"><a href="#block-说明符" class="headerlink" title="__block 说明符"></a>__block 说明符</h2><p>block中给变量赋值编译会报错。两种情况下允许在block中进行赋值操作。</p>
-<ol>
-<li>全局变量、静态全局变量和静态变量</li>
-<li>__block 说明符修饰的变量</li>
-</ol>
-<p><strong>全局变量与全局静态变量，在block中是直接使用</strong><br><strong>静态变量则是是用静态变量的指针进行访问</strong></p>
-<p>__block 说明符编译后</p>
-<p>编译前</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line"></span><br><span class="line">    @autoreleasepool &#123;</span><br><span class="line">        // insert code here...</span><br><span class="line">        __block int a = 3;</span><br><span class="line">        void(^block)(void) = ^()&#123;</span><br><span class="line">            a *=2;</span><br><span class="line">        &#125;;</span><br><span class="line">        block();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>编译后</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">int main(int argc, const char * argv[]) &#123;</span><br><span class="line"></span><br><span class="line">    /* @autoreleasepool */ &#123; __AtAutoreleasePool __autoreleasepool; </span><br><span class="line">    // __block int a = 3 变成了 __Block_byref_a_0 结构体 并初始化为3 </span><br><span class="line">        __attribute__((__blocks__(byref))) __Block_byref_a_0 a = &#123;(void*)0,(__Block_byref_a_0 *)&amp;a, 0, sizeof(__Block_byref_a_0), 3&#125;;</span><br><span class="line">        // 初始化block </span><br><span class="line">        void(*block)(void) = ((void (*)())&amp;__main_block_impl_0((void *)__main_block_func_0, &amp;__main_block_desc_0_DATA, (__Block_byref_a_0 *)&amp;a, 570425344));</span><br><span class="line">        // 执行block</span><br><span class="line">        ((void (*)(__block_impl *))((__block_impl *)block)-&gt;FuncPtr)((__block_impl *)block);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>主要变化在<strong>main_block_impl_0 结构体，变量a 不在是一个int 而是</strong>Block_byref_a_0 结构体</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">struct __main_block_impl_0 &#123;</span><br><span class="line">  struct __block_impl impl;</span><br><span class="line">  struct __main_block_desc_0* Desc;</span><br><span class="line">  __Block_byref_a_0 *a; // by ref</span><br><span class="line">  __main_block_impl_0(void *fp, struct __main_block_desc_0 *desc, __Block_byref_a_0 *_a, int flags=0) : a(_a-&gt;__forwarding) &#123;</span><br><span class="line">    impl.isa = &amp;_NSConcreteStackBlock;</span><br><span class="line">    impl.Flags = flags;</span><br><span class="line">    impl.FuncPtr = fp;</span><br><span class="line">    Desc = desc;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>来看看__Block_byref_a_0 </p>
-<p><code>__attribute__((__blocks__(byref))) __Block_byref_a_0 a = {(void*)0,(__Block_byref_a_0 *)&amp;a, 0, sizeof(__Block_byref_a_0), 3};</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">struct __Block_byref_a_0 &#123;</span><br><span class="line">  void *__isa;</span><br><span class="line">__Block_byref_a_0 *__forwarding;</span><br><span class="line"> int __flags;</span><br><span class="line"> int __size;</span><br><span class="line"> int a;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>可以看到结构体中的__forwarding 就是指向了自身 int a 被初始化为3<br>放一张图来说明<br><img src="media/15170297966756/15173167442930.jpg" alt=""></p>
-<h2 id="block的存储域"><a href="#block的存储域" class="headerlink" title="block的存储域"></a>block的存储域</h2><p>问题：</p>
-<ol>
-<li>block超出变量作用域可以存在的原因</li>
-</ol>
-<p>答案：block从栈上复制到了对堆</p>
-<ol start="2">
-<li><strong>forwarding的作用是什么<br>答案：</strong>forwarding保证不管block被分配的堆上还是在栈上，都能被访问到</li>
-</ol>
-<h2 id="block变量的存储域"><a href="#block变量的存储域" class="headerlink" title="__block变量的存储域"></a>__block变量的存储域</h2><h2 id="截获对象"><a href="#截获对象" class="headerlink" title="截获对象"></a>截获对象</h2><h2 id="block变量与对象"><a href="#block变量与对象" class="headerlink" title="__block变量与对象"></a>__block变量与对象</h2>
-          
-        
-      
-    </div>
-
-    
-
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2199,7 +2193,7 @@
                 
                   <a href="/archives/">
                 
-                    <span class="site-state-item-count">13</span>
+                    <span class="site-state-item-count">15</span>
                     <span class="site-state-item-name">posts</span>
                   </a>
                 </div>
@@ -2224,7 +2218,9 @@
                     
                       
                     
-                    <span class="site-state-item-count">5</span>
+                      
+                    
+                    <span class="site-state-item-count">6</span>
                     <span class="site-state-item-name">tags</span>
                   </a>
                 </div>
