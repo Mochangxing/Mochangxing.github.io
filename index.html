@@ -350,7 +350,7 @@
       
         
           
-            <h3 id="影响帧率的原因"><a href="#影响帧率的原因" class="headerlink" title="影响帧率的原因"></a>影响帧率的原因</h3><h4 id="屏幕显示图像的原理："><a href="#屏幕显示图像的原理：" class="headerlink" title="屏幕显示图像的原理："></a><strong>屏幕显示图像的原理</strong>：</h4><p><img src="media/15352705850650/15352757694905.png" alt=""></p>
+            <h3 id="影响帧率的原因"><a href="#影响帧率的原因" class="headerlink" title="影响帧率的原因"></a>影响帧率的原因</h3><h4 id="屏幕显示图像的原理："><a href="#屏幕显示图像的原理：" class="headerlink" title="屏幕显示图像的原理："></a><strong>屏幕显示图像的原理</strong>：</h4><p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15352705850650/15352757694905.png" alt=""></p>
 <p>一般而言，计算机系统中CPU、GPU以及显示器以以上这种方式协同工作。CPU计算好需要会显示的内容提交给GPU，GPU渲染完成后将渲染结果存入缓存区，随后视频控制器根据VSync信号，将缓冲区的内容显示到显示器上。</p>
 <p>在这个过程中，<strong>CPU的主要职责是计算</strong>，<strong>GPU的主要职责是渲染</strong></p>
 <h4 id="影响帧率的原因-1"><a href="#影响帧率的原因-1" class="headerlink" title="影响帧率的原因"></a><strong>影响帧率的原因</strong></h4><ul>
@@ -739,9 +739,9 @@
         
           
             <p>这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。</p>
-<h3 id="App启动流程"><a href="#App启动流程" class="headerlink" title="App启动流程"></a>App启动流程</h3><p>main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time<br><img src="media/15354675150632/15355095088116.jpg" alt=""></p>
+<h3 id="App启动流程"><a href="#App启动流程" class="headerlink" title="App启动流程"></a>App启动流程</h3><p>main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time<br><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15355095088116.jpg" alt=""></p>
 <h4 id="Pre-main-time"><a href="#Pre-main-time" class="headerlink" title="Pre-main time"></a>Pre-main time</h4><p>下图是Apple在WWDC上展示pre-main 阶段的流程图。</p>
-<p><img src="media/15354675150632/15355540940666.jpg" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15355540940666.jpg" alt=""></p>
 <ol>
 <li><p>Load dylibs</p>
 <p>加载动态库，系统首先会可执行文件，然后加载动态链接库dyld，dyld是一个用来专门加载动态链接库的库（😂）。加载完dyld，dyld从可执行文件的依赖开始，递归的加载所有依赖的动态链接库。</p>
@@ -778,7 +778,7 @@
 </code></pre><p>以上为买家版的pre-main阶段的详细耗时，可以看到大头是在ObjC setup和initializer阶段</p>
 <h4 id="如何统计线上-pre-main-时间"><a href="#如何统计线上-pre-main-时间" class="headerlink" title="如何统计线上 pre-main 时间"></a>如何统计线上 pre-main 时间</h4><h5 id="统计全部load方法的耗时"><a href="#统计全部load方法的耗时" class="headerlink" title="统计全部load方法的耗时"></a>统计全部load方法的耗时</h5><p>dyld会优先初始化动态库，然后初始化App的可执行文件。只要在最早加载的动态库中Hook App中全部的load函数，然后打点统计就可以了。那么问题就变成了如何找到最早加载的动态库？</p>
 <p>动态库的 load 顺序是与 Load Commands 顺序和依赖关系息息相关的。如图所示：</p>
-<p><img src="media/15354675150632/15357240745282.jpg" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15357240745282.jpg" alt=""></p>
 <h5 id="如何调整Load-Command-顺序-让自定义的动态库率先被加载"><a href="#如何调整Load-Command-顺序-让自定义的动态库率先被加载" class="headerlink" title="如何调整Load Command 顺序, 让自定义的动态库率先被加载?"></a>如何调整Load Command 顺序, 让自定义的动态库率先被加载?</h5><p>思路1：Mach-O 本质是还是一个文件，想要让上图中的AAAAAHookLoad被第一个加载，那么只要把Load Command 与第一个动态库的Load Command 替换即可。该方案需要对Mach-O的文件格式有足够的了解</p>
 <p>思路2：编译过程，指定Load Command的顺序。按理说，Mach-O中Load Command的顺序应该是按照一定的规则写入的。只要能找到修改响应规则的方法，应该比思路1容易得多。目前还没找到（😂）</p>
 <p>自定义动态库，已Embed framework的方式加入App工程 -&gt; 自定义的某个class load 方法中 hook 全部类的load方法 -&gt; hook方法中统计load方法耗时 -&gt; 输出</p>
