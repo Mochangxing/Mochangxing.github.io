@@ -110,7 +110,8 @@
 <meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15355095088116.jpg">
 <meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15355540940666.jpg">
 <meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15357240745282.jpg">
-<meta property="og:updated_time" content="2018-09-01T03:00:42.341Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15358658640406.jpg">
+<meta property="og:updated_time" content="2018-09-02T07:59:58.356Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="iOS性能优化之启动优化">
 <meta name="twitter:description" content="这一篇写一写关于iOS的启动，都是前人的文章，自己实践记录一下，加深理解和认识，文末附上参考链接。 App启动流程main() 函数作为一个应用程序的入口，从App的icon 被点击，到程序进入main函数这段时间内，系统已经完成了很多工作。iOS的启动过程大致可分为两部分：pre-main time ,post-main time Pre-main time下图是Apple在WWDC上展示pre">
@@ -395,6 +396,7 @@
 <p><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15357240745282.jpg" alt=""></p>
 <h5 id="如何调整Load-Command-顺序-让自定义的动态库率先被加载"><a href="#如何调整Load-Command-顺序-让自定义的动态库率先被加载" class="headerlink" title="如何调整Load Command 顺序, 让自定义的动态库率先被加载?"></a>如何调整Load Command 顺序, 让自定义的动态库率先被加载?</h5><p>思路1：Mach-O 本质是还是一个文件，想要让上图中的AAAAAHookLoad被第一个加载，那么只要把Load Command 与第一个动态库的Load Command 替换即可。该方案需要对Mach-O的文件格式有足够的了解</p>
 <p>思路2：编译过程，指定Load Command的顺序。按理说，Mach-O中Load Command的顺序应该是按照一定的规则写入的。只要能找到修改响应规则的方法，应该比思路1容易得多。目前还没找到（😂）</p>
+<p>使用思路1的方案调整Load Command 加载顺序后，AAAAAHookLoad 被调整到了最前面<br><img src="https://raw.githubusercontent.com/Mochangxing/blogImages/master/media/15354675150632/15358658640406.jpg" alt=""></p>
 <p>自定义动态库，已Embed framework的方式加入App工程 -&gt; 自定义的某个class load 方法中 hook 全部类的load方法 -&gt; hook方法中统计load方法耗时 -&gt; 输出</p>
 <p><strong>注意事项：</strong></p>
 <p><strong>1. 不能为了统计性能，自己却造成了性能问题，获取所有的类并且 Hook load 函数还是比较耗时的，控制不好反而增加了启动时间</strong></p>
